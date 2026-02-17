@@ -12,8 +12,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-default-key")
 DEBUG = os.getenv("DEBUG", "0") == "1"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
-CSRF_TRUSTED_ORIGINS = ['http://map.goal-runner.com', 'https://map.goal-runner.com', 'http://175.126.187.59']
-CORS_ALLOW_ALL_ORIGINS = True
+# Removed duplicate CSRF/CORS settings
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -98,47 +97,25 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
-# R2 Storage Configuration
-R2_ACCESS_KEY_ID = os.getenv('R2_ACCESS_KEY_ID')
-R2_SECRET_ACCESS_KEY = os.getenv('R2_SECRET_ACCESS_KEY')
-R2_BUCKET_NAME = os.getenv('R2_BUCKET_NAME')
-R2_ENDPOINT_URL = os.getenv('R2_ENDPOINT_URL')
-R2_SERVER_PREFIX = os.getenv('R2_SERVER_PREFIX', 'dev')
+# R2 Storage/CDN Disabled (Simplified Structure)
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
-if R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY:
-    # Use R2 for static files
-    AWS_ACCESS_KEY_ID = R2_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY = R2_SECRET_ACCESS_KEY
-    AWS_STORAGE_BUCKET_NAME = R2_BUCKET_NAME
-    AWS_S3_ENDPOINT_URL = R2_ENDPOINT_URL
-    AWS_S3_REGION_NAME = 'auto'
-    AWS_S3_SIGNATURE_VERSION = 's3v4'
-    AWS_QUERYSTRING_AUTH = False
-    
-    # Static files location
-    AWS_LOCATION = f'{R2_SERVER_PREFIX}/static'
-    
-    # Custom Domain for CDN
-    R2_CUSTOM_DOMAIN = os.getenv('R2_CUSTOM_DOMAIN')
-    if R2_CUSTOM_DOMAIN:
-        # User provided domain, e.g., https://assets.goal-runner.com
-        # Update STATIC_URL to use CDN
-        domain = R2_CUSTOM_DOMAIN.replace('https://', '').replace('http://', '').strip('/')
-        AWS_S3_CUSTOM_DOMAIN = domain
-        # Set STATIC_URL to CDN domain + location path
-        STATIC_URL = f'https://{domain}/{AWS_LOCATION}/'
-    else:
-        # Fallback to R2 endpoint if no custom domain
-        STATIC_URL = f'{R2_ENDPOINT_URL}/{R2_BUCKET_NAME}/{AWS_LOCATION}/'
-    
-    STORAGES = {
-        "default": {
-            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        },
-        "staticfiles": {
-            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        },
-    }
+# CORS & CSRF Settings for Cloudflare Pages
+CORS_ALLOWED_ORIGINS = [
+    "https://map.goal-runner.com",
+    "http://map.goal-runner.com",
+    "http://localhost:8084",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://map.goal-runner.com",
+    "https://api-map.goal-runner.com",
+]
+CORS_ALLOW_CREDENTIALS = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 KAKAO_MAPS_API_KEY = os.getenv("KAKAO_MAPS_API_KEY")

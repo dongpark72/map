@@ -1,0 +1,1943 @@
+:root {
+
+            --glass-bg: rgba(255, 255, 255, 0.85);
+
+            --glass-border: rgba(255, 255, 255, 0.4);
+
+            --primary: #2563eb;
+
+            --primary-hover: #1d4ed8;
+
+            --text: #1e293b;
+
+            --text-muted: #64748b;
+
+        }
+
+        body,
+
+        html {
+
+            margin: 0;
+
+            padding: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            font-family: 'Inter', 'Pretendard', sans-serif;
+
+            overflow: hidden;
+
+            background: #f8fafc;
+
+        }
+
+        .map-container {
+
+            position: absolute;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            z-index: 1;
+
+            visibility: hidden;
+
+            transition: opacity 0.3s ease;
+
+        }
+
+        .map-container.active {
+
+            visibility: visible;
+
+            z-index: 2;
+
+        }
+
+        #sidebar {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 240px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 0;
+            padding: 12px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, left 0.3s ease;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+        }
+
+        #sidebar.collapsed {
+            transform: translateX(-215px);
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .sidebar-toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #64748b;
+            padding: 0 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Removed separate toggle btn as it's now inside the sidebar */
+
+        h1 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .control-group {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 6px;
+
+        }
+
+        label {
+            font-size: 7.5pt;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        textarea {
+            width: 100%;
+            height: 72px;
+            padding: 8px;
+            border-radius: 0;
+            border: 1px solid #e2e8f0;
+            resize: none;
+            font-size: 7.5pt;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            box-sizing: border-box;
+        }
+
+        button.primary-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 0;
+            font-weight: 600;
+            font-size: 7.5pt;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button.primary-btn:hover {
+
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+
+        }
+
+        .toggle-group {
+
+            display: flex;
+
+            background: #f1f5f9;
+
+            padding: 4px;
+
+            border-radius: 0;
+
+        }
+
+        .toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 0;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .toggle-option.selected {
+
+            background: white;
+
+            font-weight: 700;
+
+            color: var(--primary);
+
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+        }
+
+        .checkbox-wrapper {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            cursor: pointer;
+
+            font-size: 9pt;
+
+        }
+
+        #result-list {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 8px;
+
+        }
+
+        .result-item {
+
+            position: relative;
+
+            padding: 8px;
+
+            border-radius: 6px;
+
+            background: white;
+
+            border: 1px solid #f1f5f9;
+
+            font-size: 7.5pt;
+
+            transition: all 0.2s;
+
+        }
+
+        .result-item:hover {
+
+            transform: translateX(4px);
+
+            border-color: #fee2e2;
+
+        }
+
+        .result-item.selected {
+
+            background: #fff1f2;
+
+            border-color: #fda4af;
+
+        }
+
+        .badge-wrapper {
+
+            position: relative;
+
+            display: inline-block;
+
+            margin-right: 8px;
+
+        }
+
+        .badge {
+
+            display: inline-block;
+
+            width: 18px;
+
+            height: 18px;
+
+            line-height: 18px;
+
+            text-align: center;
+
+            background: #ef4444;
+
+            color: white;
+
+            border-radius: 3px;
+
+            font-size: 0.6rem;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            border: 1.5px solid white;
+
+            box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.1);
+
+        }
+
+        .color-picker {
+
+            position: absolute;
+
+            top: calc(100% + 5px);
+
+            left: 0;
+
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 8px;
+
+            display: none;
+
+            grid-template-columns: repeat(3, 1fr);
+
+            gap: 6px;
+
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+
+            z-index: 1001;
+
+            border: 1px solid #e2e8f0;
+
+        }
+
+        .color-picker.show {
+
+            display: grid;
+
+            z-index: 1100;
+
+        }
+
+        .color-dot {
+
+            width: 20px;
+
+            height: 20px;
+
+            border-radius: 50%;
+
+            cursor: pointer;
+
+            border: 1px solid rgba(0, 0, 0, 0.1);
+
+            transition: transform 0.1s;
+
+        }
+
+        .color-dot:hover {
+
+            transform: scale(1.2);
+
+        }
+
+        #debug-status {
+            position: fixed;
+            bottom: 5px;
+            right: 5px;
+            font-size: 10pt;
+            color: rgba(0, 0, 0, 0.7);
+            padding: 2px 6px;
+            z-index: 9999;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 0;
+        }
+
+        .alert-box {
+
+            padding: 8px;
+
+            border-radius: 0;
+
+            background: #fee2e2;
+
+            color: #991b1b;
+
+            font-size: 0.65rem;
+
+            font-weight: 600;
+
+            border: 1px solid #fecaca;
+
+            display: none;
+
+        }
+
+        /* Map Controls (Top Right Overlay) */
+        #map-tools {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            /* transform: scale(0.768); Removed to ensure 100% scale */
+            /* transform-origin: top right; */
+        }
+
+        .tool-group {
+            display: flex;
+            background: white;
+            border-radius: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 2px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .tool-btn {
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: default;
+            /* Changed from pointer to satisfy user request */
+            border-radius: 0;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: none;
+            white-space: nowrap;
+            height: 32px;
+        }
+
+        .tool-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .tool-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* Measurement Tools (Removed Vertical, now in main group) */
+
+        /* Custom tooltips for measurement */
+        .dotOverlay {
+            position: relative;
+            bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            border-bottom: 2px solid #ddd;
+            float: left;
+            font-size: 11px;
+            padding: 5px;
+            background: #fff;
+            white-space: nowrap;
+            box-shadow: 0px 1px 2px #888;
+        }
+
+        .dotOverlay .number {
+            font-weight: bold;
+            color: #ee6152;
+        }
+
+        .dotOverlay:after {
+            content: '';
+            position: absolute;
+            margin-left: -6px;
+            left: 50%;
+            bottom: -8px;
+            width: 11px;
+            height: 8px;
+            background: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/vertex_white_small.png') no-repeat 0 -70px;
+        }
+
+        .distanceInfo {
+            position: relative;
+            top: 5px;
+            left: 5px;
+            list-style: none;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 11px;
+            min-width: 140px;
+        }
+
+        .distanceInfo-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .distanceInfo .label {
+            display: inline-block;
+            width: 45px;
+            color: #64748b;
+        }
+
+        .distanceInfo .number {
+            font-weight: bold;
+            color: #ee6152;
+        }
+
+        .clear-measure {
+            cursor: default;
+            color: #64748b;
+            font-weight: normal;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 8pt;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            white-space: nowrap;
+        }
+
+        .clear-measure {
+            cursor: default;
+            color: #64748b;
+            font-weight: normal;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 8pt;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .clear-measure:hover {
+            background: #f1f5f9;
+            color: #ef4444;
+        }
+
+        .tool-btn-icon {
+            width: 36px;
+            padding: 0;
+            font-size: 1.1rem;
+        }
+
+        .tool-divider {
+            width: 1px;
+            background: #e2e8f0;
+            margin: 6px 4px;
+        }
+
+        .land-info-btn {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            width: 15px;
+
+            height: 15px;
+
+            background: #059669;
+
+            color: white !important;
+
+            border-radius: 0;
+
+            font-size: 7pt;
+
+            font-weight: bold;
+
+            text-decoration: none;
+
+            margin-top: 4px;
+
+            cursor: pointer;
+
+            transition: all 0.2s;
+
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+        }
+
+        .land-info-btn:hover {
+
+            background: #047857;
+
+            transform: translateY(-1px);
+
+        }
+
+        .land-info-btn.disabled {
+
+            background: #e2e8f0;
+
+            cursor: default;
+
+            pointer-events: none;
+
+            opacity: 0.5;
+
+        }
+
+        .result-content-wrapper {
+
+            display: flex;
+
+            flex-direction: column;
+
+            width: 100%;
+
+        }
+
+        .result-addr-row {
+
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 2px;
+
+        }
+
+        .result-action-row {
+
+            padding-left: 28px;
+
+            display: flex;
+
+            gap: 5px;
+
+        }
+
+        .result-info-row {
+            padding-left: 28px;
+            font-size: 7pt;
+            color: #ef4444;
+            /* Red color as in the image */
+            margin-top: 2px;
+            line-height: 1.3;
+            font-weight: normal;
+        }
+
+        .info-btn {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            width: 15px;
+
+            height: 15px;
+
+            background: #3b82f6;
+
+            color: white !important;
+
+            border-radius: 0;
+
+            font-size: 7pt;
+
+            font-weight: bold;
+
+            text-decoration: none;
+
+            margin-top: 4px;
+
+            cursor: pointer;
+
+            transition: all 0.2s;
+
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+            border: none;
+
+        }
+
+        .info-btn:hover {
+
+            background: #2563eb;
+
+            transform: translateY(-1px);
+
+        }
+
+        .info-btn.disabled {
+
+            background: #e2e8f0;
+
+            cursor: default;
+
+            pointer-events: none;
+
+            opacity: 0.5;
+
+        }
+
+        #info-panel {
+            display: none;
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            width: fit-content;
+            min-width: 1000px;
+            max-width: 98vw;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 0;
+            padding: 5px 12px;
+            z-index: 2000;
+            max-height: 40px;
+            /* Minimized height */
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            user-select: text;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-weight: normal;
+        }
+
+        #info-panel.visible {
+            display: block !important;
+        }
+
+        #info-panel.show {
+            max-height: 80vh;
+            overflow-y: hidden;
+            /* Header handles dragging, content handles scroll */
+        }
+
+        .info-panel-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            height: 30px;
+            margin-bottom: 5px;
+            cursor: move;
+            user-select: none;
+        }
+
+        .info-panel-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #2563eb;
+            margin-right: auto;
+            /* Push buttons to right */
+        }
+
+        .header-btns {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .info-toggle-btn {
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            color: #2563eb;
+            padding: 1px 8px;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .info-panel-close {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+            background: white;
+            margin-bottom: 0;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-weight: normal;
+        }
+
+        .info-table-container {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 50vh;
+            margin-bottom: 0;
+            border: 1px solid #d1d5db;
+        }
+
+        .info-table th {
+            background: #253858;
+            color: white;
+            font-weight: 600;
+            padding: 4px 6px;
+            border: 1px solid #4a5568;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .info-table td {
+            background: white;
+            color: #1f2937;
+            padding: 4px 6px;
+            border: 1px solid #d1d5db;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 공시지가 패널 스타일 */
+        #price-panel {
+            position: absolute;
+            top: 65px;
+            right: 15px;
+            transform: none;
+            width: 240px;
+            /* 80% of original 300px */
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 0;
+            padding: 6px;
+            /* Reduced from 15px */
+            z-index: 2000;
+            transition: right 0.3s ease, transform 0.3s ease;
+            user-select: text;
+            display: none;
+            /* Hidden until '공' button is clicked */
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-weight: normal;
+        }
+
+        #price-panel.minimized {
+            transform: translateX(220px);
+        }
+
+        #price-panel.active {
+            right: 0;
+        }
+
+        .price-panel-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #64748b;
+            padding: 0 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .price-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            /* Reduced from 12px */
+            padding-bottom: 2px;
+            /* Reduced from 8px */
+            /* Removed border-bottom for a cleaner look without title */
+            cursor: move;
+            user-select: none;
+        }
+
+        .price-panel-title-text {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .price-panel-title {
+            display: none;
+            /* Removed title as per user request */
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .price-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+
+        /* Column-based layout for separate selection */
+        .price-grid {
+            display: flex;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 8.5pt;
+        }
+
+        .price-col {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            border-right: 1px solid #cbd5e1;
+        }
+
+        .price-col:last-child {
+            border-right: none;
+        }
+
+        .price-cell {
+            padding: 2px 4px;
+            text-align: center;
+            border-bottom: 1px solid #cbd5e1;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-weight: normal;
+        }
+
+        .price-cell.header {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .price-cell:last-child {
+            border-bottom: none;
+        }
+
+        /* Allow easier column selection */
+        .price-cell {
+            user-select: text;
+        }
+
+        /* '공' 버튼 스타일 */
+        .gong-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            background: #f59e0b;
+            /* Amber/Orange */
+            color: white !important;
+            border-radius: 0;
+            font-size: 7pt;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .gong-btn:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+        .gong-btn.disabled {
+            background: #e2e8f0;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* '건' 버튼 스타일 */
+        .build-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            background: #7c3aed;
+            /* Purple */
+            color: white !important;
+            border-radius: 0;
+            font-size: 7pt;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .build-btn:hover {
+            background: #6d28d9;
+            transform: translateY(-1px);
+        }
+
+        .build-btn.disabled {
+            background: #e2e8f0;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* 건축물 상세 패널 스타일 */
+        /* 건축물 상세 패널 스타일 */
+        #building-panel {
+            display: none;
+            position: absolute;
+            top: 5px;
+            left: 250px;
+            /* 주소입력 패널(290px) + 여백(30px) */
+            width: 500px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 0;
+            padding: 6px;
+            z-index: 1005;
+            max-height: 95vh;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            user-select: text;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-weight: normal;
+            transition: max-height 0.3s ease;
+        }
+
+        #building-panel.minimized {
+            max-height: 45px;
+        }
+
+        .bld-detail-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #2563eb;
+            text-align: center;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            user-select: none;
+        }
+
+        #building-detail-content {
+            overflow-y: auto;
+            max-height: calc(95vh - 50px);
+            padding-right: 4px;
+            /* Space for scrollbar */
+        }
+
+        /* General Table */
+        .bld-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            margin-bottom: 8px;
+            background: white;
+            border-top: 2px solid #60a5fa;
+            /* Light blue top border */
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .bld-table th {
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 700;
+            padding: 3px 6px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            width: 20%;
+        }
+
+        .bld-table td {
+            background: white;
+            color: #1e293b;
+            padding: 3px 6px;
+            border: 1px solid #e2e8f0;
+            width: 30%;
+        }
+
+        /* Sub Header for Status */
+        .bld-sub-header {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #3b82f6;
+            /* Matching blue */
+            margin: 16px 0 8px 0;
+            text-align: center;
+            padding-top: 4px;
+        }
+
+        /* Status List Table */
+        .bld-list-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            background: white;
+            border-top: 2px solid #60a5fa;
+            /* Light blue top border */
+        }
+
+        .bld-list-table th {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 6px;
+            border: 1px solid #e2e8f0;
+            border-bottom: 1px solid #cbd5e1;
+            font-weight: 700;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        /* 층별 정보 패널 스타일 */
+        #floor-panel {
+            display: none;
+            position: absolute;
+            top: 5px;
+            left: 755px;
+            /* building-panel(320px + 522px + 30px gap) 오른쪽에 배치 */
+            width: 420px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 0;
+            padding: 6px;
+            z-index: 1005;
+            max-height: 95vh;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            user-select: text;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-weight: normal;
+            transition: max-height 0.3s ease;
+        }
+
+        #floor-panel.minimized {
+            max-height: 45px;
+        }
+
+        .floor-panel-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #2563eb;
+            text-align: center;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            user-select: none;
+        }
+
+        #floor-content {
+            overflow-y: auto;
+            max-height: calc(95vh - 50px);
+            padding-right: 4px;
+        }
+
+        /* 층별 정보 테이블 */
+        .floor-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            background: white;
+            border-top: 2px solid #60a5fa;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .floor-table th {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 6px 4px;
+            border: 1px solid #e2e8f0;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .floor-table td {
+            padding: 6px 4px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            color: #334155;
+        }
+
+        .floor-table td:nth-child(3),
+        .floor-table td:nth-child(4) {
+            text-align: left;
+            /* 구조, 용도는 왼쪽 정렬 */
+        }
+
+        .floor-table td:nth-child(5) {
+            text-align: right;
+            /* 면적은 오른쪽 정렬 */
+            padding-right: 8px;
+        }
+
+        /* 동 명칭 클릭 스타일 제거 및 행 클릭 스타일 추가 */
+        .bld-row-clickable {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .bld-row-clickable:hover {
+            background-color: #f1f5f9 !important;
+        }
+
+        .bld-row-clickable:hover td {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        .bld-list-table td {
+            padding: 6px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        /* Specific column alignments if needed */
+        .bld-list-table td:nth-child(1) {
+            font-weight: bold;
+            text-align: center;
+            width: 40px;
+        }
+
+        /* 구분 */
+        .bld-list-table td:nth-child(2) {
+            text-align: center;
+            width: 50px;
+        }
+
+        /* 층별 */
+        .bld-list-table td:last-child {
+            text-align: right;
+        }
+
+        /* 면적 */
+        /* 실거래가 패널 스타일 */
+        #realprice-panel {
+            display: none;
+            position: absolute;
+            top: 260px;
+            right: 15px;
+            width: 520px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 0;
+            padding: 8px;
+            z-index: 2005;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            user-select: text;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            transition: right 0.3s ease, transform 0.3s ease;
+        }
+
+        #realprice-panel.minimized {
+            transform: translateX(485px);
+        }
+
+        .realprice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: move;
+        }
+
+        .realprice-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ea580c;
+            /* Orange color for distinction */
+        }
+
+        .realprice-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 10px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .realprice-table td.clickable-jibun {
+            color: #2563eb;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .realprice-table td.clickable-jibun:hover {
+            color: #1d4ed8;
+            font-weight: bold;
+        }
+
+        .realprice-tab {
+            padding: 4px 8px;
+            font-size: 7.5pt;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 0;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .realprice-tab.active {
+            background: #ea580c;
+            color: white;
+            border-color: #ea580c;
+        }
+
+        .realprice-table-container {
+            max-height: 60vh;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            background: white;
+        }
+
+        .realprice-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+        }
+
+        .realprice-table th {
+            background: #f8fafc;
+            position: sticky;
+            top: 0;
+            padding: 6px;
+            border: 1px solid #e2e8f0;
+            font-weight: 700;
+            z-index: 10;
+        }
+
+        .realprice-table td {
+            padding: 6px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .real-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            background: #ea580c;
+            /* Orange */
+            color: white !important;
+            border-radius: 0;
+            font-size: 7pt;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .real-btn:hover {
+            background: #c2410c;
+            transform: translateY(-1px);
+        }
+
+        .real-btn.disabled {
+            background: #e2e8f0;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* '병' 버튼 스타일 */
+        .hospital-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            background: #ef4444;
+            /* Red for Hospital */
+            color: white !important;
+            border-radius: 0;
+            font-size: 7pt;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .hospital-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .hospital-btn.disabled {
+            background: #e2e8f0;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* 로드뷰 컨테이너 */
+        #roadview-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 3000;
+            background: black;
+        }
+
+        #roadview-main {
+            width: 100%;
+            height: 100%;
+        }
+
+        #roadview-minimap {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 250px;
+            height: 200px;
+            z-index: 3001;
+            border: 2px solid white;
+            border-radius: 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        #roadview-minimap.large {
+            width: 450px;
+            height: 350px;
+        }
+
+        #roadview-minimap.hidden-map {
+            width: 40px;
+            height: 40px;
+            border-radius: 0;
+        }
+
+        .roadview-tool-cursor,
+        .roadview-tool-cursor * {
+            cursor: crosshair !important;
+        }
+
+        .rv-map-control {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            border-radius: 0;
+            cursor: pointer;
+            z-index: 3005;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .rv-map-resize {
+            top: 5px;
+            right: 5px;
+        }
+
+        .rv-map-hide {
+            bottom: 5px;
+            left: 5px;
+        }
+
+        #rv-pov-container {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #rv-pov-cone {
+            width: 100%;
+            height: 100%;
+            background: url('https://t1.daumcdn.net/localimg/localimages/07/2018/pc/roadview_minimap_wakepin_200904.png') no-repeat center;
+            background-size: contain;
+            /* Note: We will use a custom SVG for the yellow cone if this pin isn't right */
+        }
+
+        #rv-pov-dot {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #2563eb;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+
+        /* Yellow sector cone for POV */
+        .rv-cone-sector {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 230, 0, 0.4);
+            clip-path: polygon(50% 50%, 0% 0%, 100% 0%);
+            /* 90 degree cone example */
+            z-index: 1;
+        }
+
+        .roadview-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 0;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 3002;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            transition: background 0.2s;
+        }
+
+        .roadview-close:hover {
+            background: rgba(239, 68, 68, 0.8);
+        }
+
+        .road-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            background: #2563eb;
+            /* Blue */
+            color: white !important;
+            border-radius: 3px;
+            font-size: 7pt;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .road-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .road-btn.disabled {
+            background: #e2e8f0;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* Premium Urban Login Overlay Styles */
+        #gundam-login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #060b13;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            overflow: hidden;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        #gundam-login-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            box-shadow: inset 0 0 150px 50px rgba(13, 110, 253, 0.15);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .premium-login-card {
+            background: #111827;
+            width: 420px;
+            padding: 70px 50px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 80px rgba(0, 0, 0, 0.7);
+            text-align: center;
+            z-index: 10;
+            position: relative;
+            animation: card-entry 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes card-entry {
+            0% {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .pl-logo-container {
+            margin-bottom: 55px;
+        }
+
+        .pl-logo-text {
+            font-size: 45px;
+            font-weight: 700;
+            color: #45d9e5;
+            letter-spacing: -2px;
+            margin-bottom: 5px;
+            text-transform: lowercase;
+        }
+
+        .pl-logo-subtext {
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: #5e6c7a;
+            font-weight: 600;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .pl-form-group {
+            text-align: left;
+            margin-bottom: 22px;
+        }
+
+        .pl-label {
+            display: block;
+            font-size: 9px;
+            font-weight: 600;
+            color: #5e6c7a;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .pl-input {
+            width: 100%;
+            background: #16202c;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .pl-input:focus {
+            border-color: #45d9e5;
+            background: #1c2836;
+            box-shadow: 0 0 15px rgba(69, 217, 229, 0.1);
+        }
+
+        .pl-access-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #45d9e5, #3da8e3);
+            border: none;
+            border-radius: 12px;
+            padding: 18px;
+            color: #060b13;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 25px;
+            box-shadow: 0 10px 25px rgba(69, 217, 229, 0.25);
+        }
+
+        .pl-access-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(69, 217, 229, 0.35);
+            filter: brightness(1.1);
+        }
+
+        .pl-footer {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 9.5px;
+            color: #3e4c5a;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .gundam-status {
+            margin-top: 15px;
+            font-size: 0.75rem;
+            text-align: center;
+            height: 20px;
+            font-weight: 600;
+        }
+
+        .status-error {
+            color: #ef4444;
+            animation: pl-shake 0.4s;
+        }
+
+        .status-success {
+            color: #10b981;
+        }
+
+        .pl-shake {
+            animation: pl-shake 0.4s;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .logout-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .pl-shake {
+            animation: pl-shake 0.4s;
+        }
+
+        /* Warehouse Panel - Bottom Center */
+        #warehouse-panel {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            z-index: 1500;
+            display: none;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 80vh;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        #warehouse-panel.minimized {
+            height: 48px !important;
+            overflow: hidden !important;
+        }
+
+        .warehouse-panel-header {
+            padding: 12px 16px;
+            background: linear-gradient(to right, #f8fafc, #f1f5f9);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            height: 48px;
+            box-sizing: border-box;
+        }
+
+        .warehouse-panel-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warehouse-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .warehouse-close-btn:hover {
+            color: #ef4444;
+        }
+
+/* General Panel Styles */
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom: 1px solid #e2e8f0;
+            cursor: move;
+        }
+
+        .panel-title {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-controls button {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            border-radius: 0;
+            padding: 2px 6px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .panel-controls button:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .panel-content {
+            padding: 0;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Warehouse Panel (Bottom Center) */
+        #warehouse-panel {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            z-index: 2000;
+            display: none;
+            font-family: 'Pretendard', sans-serif;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: opacity 0.3s ease;
+        }
+
+        #warehouse-panel.minimized .panel-content {
+            display: none;
+        }
+
+        /* Auction Panel (Bottom Right) */
+        #auction-panel {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 450px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 2001;
+            display: none;
+            font-family: 'Pretendard', sans-serif;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        #auction-panel.minimized .panel-content {
+            display: none;
+        }
+
+        /* Hospital Panel (Left side) */
+        #hospital-panel {
+            position: absolute;
+            top: 100px;
+            left: 320px;
+            width: 420px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 2005;
+            display: none;
+            font-family: 'Pretendard', sans-serif;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        #hospital-panel.minimized .panel-content {
+            display: none;
+        }
+
