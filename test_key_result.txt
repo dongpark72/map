@@ -1,0 +1,11 @@
+﻿Start API Test with New Key
+
+Testing PNU: 2644010100107900000 (대저1동 (법정동 10100) - Likely Correct)
+  Calling Open API directly...
+  Status: 403
+  Failed.
+
+Testing PNU: 2644010400107900000 (대저1동 (법정동 10400) - Old Test)
+  Calling Open API directly...
+  Status: 403
+  Failed.

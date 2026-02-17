@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    container_name: gundammap-backend
+    ports:
+      - "9092:8000"
+    volumes:
+      - .:/app
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+    env_file:
+      - .env
+    depends_on:
+      - db
+    restart: always
+    networks:
+      - gundam-net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    container_name: gundammap-frontend
+    ports:
+      - "9002:80"
+    volumes:
+      - ./nginx_custom.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    restart: always
+    networks:
+      - gundam-net
+
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile_db_32bit
+    container_name: gundammap-db
+    ports:
+      - "9746:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=gundammap
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=timess9746
+    restart: always
+    networks:
+      - gundam-net
+
+volumes:
+  pg_data:
+
+
+networks:
+  gundam-net:
+    driver: bridge

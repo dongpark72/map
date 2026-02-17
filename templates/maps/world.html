@@ -1,0 +1,433 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gundam Map - Global View</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .hud-header {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            margin: 0;
+            letter-spacing: 4px;
+            background: linear-gradient(90deg, #00f2ff, #0066ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #00f2ff;
+            letter-spacing: 2px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(0, 242, 255, 0.3);
+            box-shadow: 0 0 10px #00f2ff;
+            animation: scan 4s linear infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes scan {
+            0% {
+                top: -10%;
+            }
+
+            100% {
+                top: 110%;
+            }
+        }
+
+        .hud-corner {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border: 2px solid rgba(0, 242, 255, 0.3);
+        }
+
+        .top-right {
+            top: 30px;
+            right: 40px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .bottom-left {
+            bottom: 30px;
+            left: 40px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .bottom-right {
+            bottom: 30px;
+            right: 40px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .data-panel {
+            position: absolute;
+            right: 60px;
+            top: 200px;
+            width: 250px;
+            background: rgba(0, 10, 30, 0.6);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 242, 255, 0.1);
+            padding-bottom: 5px;
+        }
+
+        .label {
+            color: #88aaff;
+            font-size: 0.9rem;
+        }
+
+        .value {
+            color: #00f2ff;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron', sans-serif;
+            color: #00f2ff;
+            font-size: 1.5rem;
+            animation: blink 1s infinite alternate;
+        }
+
+        @keyframes blink {
+            from {
+                opacity: 0.5;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 40px;
+            right: 60px;
+            pointer-events: auto;
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid #00f2ff;
+            color: #00f2ff;
+            padding: 10px 30px;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .back-btn:hover {
+            background: #00f2ff;
+            color: #000;
+            box-shadow: 0 0 20px #00f2ff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loading">INITIALIZING SYSTEM...</div>
+
+    <div id="ui-layer">
+        <div class="scan-line"></div>
+
+        <div class="hud-header">
+            <h1>GUNDAM MAP</h1>
+            <div class="subtitle">PLANETARY SURVEILLANCE SYSTEM</div>
+        </div>
+
+        <div class="hud-corner top-right"></div>
+        <div class="hud-corner bottom-left"></div>
+        <div class="hud-corner bottom-right"></div>
+
+        <a href="/" class="back-btn">Return to Grid</a>
+
+        <div class="data-panel">
+            <div class="data-row">
+                <span class="label">SYSTEM STATUS</span>
+                <span class="value">ONLINE</span>
+            </div>
+            <div class="data-row">
+                <span class="label">COORDINATES</span>
+                <span class="value" id="coords">0.00, 0.00</span>
+            </div>
+            <div class="data-row">
+                <span class="label">ZOOM LEVEL</span>
+                <span class="value" id="zoom">1.0X</span>
+            </div>
+            <div class="data-row">
+                <span class="label">TARGET</span>
+                <span class="value">EARTH</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js from CDN -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        let scene, camera, renderer, controls;
+        let earth, clouds, atmosphere, stars;
+
+        init();
+        animate();
+
+        function init() {
+            // Scene Setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.0003);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 15;
+            camera.position.y = 5;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            document.body.appendChild(renderer.domElement);
+
+            // Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enablePan = false;
+            controls.minDistance = 3;
+            controls.maxDistance = 20;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.5;
+
+            // --- OBJECTS ---
+
+            // Earth Group
+            const earthGroup = new THREE.Group();
+            scene.add(earthGroup);
+
+            // 1. Earth Sphere (Holographic Style)
+            // We use a detailed texture for the displacement/bump map but render it as a techy globe
+            const textureLoader = new THREE.TextureLoader();
+
+            // Using standard high-res maps. 
+            // If they fail to load, the color fallback will work.
+            const earthMap = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
+            const bumpMap = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-topology.png');
+            const lightsMap = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-night.jpg');
+            const cloudsMap = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-clouds.png');
+
+            // Holographic Shader Material attempt or standard Phong for stability
+            // Let's go with a sleek localized Physical material
+            const earthGeo = new THREE.SphereGeometry(3, 64, 64);
+            const earthMat = new THREE.MeshStandardMaterial({
+                map: earthMap,
+                bumpMap: bumpMap,
+                bumpScale: 0.1,
+                roughness: 0.5,
+                metalness: 0.1,
+                emissive: new THREE.Color(0x112244),
+                emissiveMap: lightsMap,
+                emissiveIntensity: 0.5
+            });
+            earth = new THREE.Mesh(earthGeo, earthMat);
+            earthGroup.add(earth);
+
+            // 2. Atmosphere Glow (Shader)
+            const vertexShader = `
+                varying vec3 vNormal;
+                void main() {
+                    vNormal = normalize(normalMatrix * normal);
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `;
+            const fragmentShader = `
+                varying vec3 vNormal;
+                void main() {
+                    float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.0)), 4.0);
+                    gl_FragColor = vec4(0.0, 0.6, 1.0, 1.0) * intensity;
+                }
+            `;
+
+            const atmoGeo = new THREE.SphereGeometry(3.3, 64, 64);
+            const atmoMat = new THREE.ShaderMaterial({
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                blending: THREE.AdditiveBlending,
+                side: THREE.BackSide,
+                transparent: true
+            });
+            atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
+            scene.add(atmosphere);
+
+            // 3. Cloud Layer
+            const cloudGeo = new THREE.SphereGeometry(3.05, 64, 64);
+            const cloudMat = new THREE.MeshStandardMaterial({
+                map: cloudsMap,
+                transparent: true,
+                opacity: 0.4,
+                blending: THREE.AdditiveBlending,
+                side: THREE.DoubleSide
+            });
+            clouds = new THREE.Mesh(cloudGeo, cloudMat);
+            earthGroup.add(clouds);
+
+            // 4. Wireframe Geodesic Overlay (Tech feel)
+            const wireGeo = new THREE.IcosahedronGeometry(3.1, 2);
+            const wireMat = new THREE.MeshBasicMaterial({
+                color: 0x00f2ff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15
+            });
+            const wireframe = new THREE.Mesh(wireGeo, wireMat);
+            earthGroup.add(wireframe);
+
+
+            // 5. Stars
+            const starGeo = new THREE.BufferGeometry();
+            const starCount = 2000;
+            const posArray = new Float32Array(starCount * 3);
+
+            for (let i = 0; i < starCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 100;
+            }
+
+            starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const starMat = new THREE.PointsMaterial({
+                size: 0.15,
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.8
+            });
+            stars = new THREE.Points(starGeo, starMat);
+            scene.add(stars);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x333333);
+            scene.add(ambientLight);
+
+            const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
+            sunLight.position.set(10, 5, 10);
+            scene.add(sunLight);
+
+            const blueLight = new THREE.PointLight(0x0044ff, 2.0, 50);
+            blueLight.position.set(-5, 2, -5);
+            scene.add(blueLight);
+
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+
+            // Events
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotations
+            if (earth) earth.rotation.y += 0.001;
+            if (clouds) clouds.rotation.y += 0.0015;
+            if (stars) stars.rotation.y -= 0.0002;
+
+            controls.update();
+
+            // Update HUD
+            updateHUD();
+
+            renderer.render(scene, camera);
+        }
+
+        function updateHUD() {
+            // Simple HUD updates based on camera
+            const dist = camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
+            const zoomVal = (15 / dist).toFixed(2);
+            document.getElementById('zoom').innerText = zoomVal + "X";
+
+            // Fake coordinates based on rotation
+            const time = Date.now() * 0.001;
+            const lat = (Math.sin(time) * 90).toFixed(2);
+            const lng = ((time * 10) % 180).toFixed(2);
+            document.getElementById('coords').innerText = `${lat}, ${lng}`;
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+Testing PNU: 1174010100100560000
+
+--- Testing RecapTitle ---
+Status: 200
+Found 1 items
+  1. PK=10261333, Name=고덕현대아파트, Dong=None
+     Trying Floor Info for PK=10261333...
+     ❌ No floors
+
+--- Testing Title ---
+Status: 200
+Found 1 items
+  1. PK=102611119, Name=고덕현대아파트, Dong=14동
+     Trying Floor Info for PK=102611119...
+     ❌ No floors
+
+--- Testing Basis ---
+Status: 200
+Found 1 items
+  1. PK=1026134028, Name=고덕현대아파트, Dong=None
+     Trying Floor Info for PK=1026134028...
+     ❌ No floors

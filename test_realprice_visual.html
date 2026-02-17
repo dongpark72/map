@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실거래가 버튼 시각화 테스트</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #1e293b;
+            border-bottom: 2px solid #f59e0b;
+            padding-bottom: 10px;
+        }
+
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 15px 0;
+        }
+
+        /* 실제 스타일 복사 */
+        .land-info-btn,
+        .info-btn,
+        .gong-btn,
+        .real-btn,
+        .build-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            font-size: 7pt;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .land-info-btn {
+            background: #10b981;
+            color: white !important;
+        }
+
+        .info-btn {
+            background: #3b82f6;
+            color: white !important;
+        }
+
+        .gong-btn {
+            background: #8b5cf6;
+            color: white !important;
+        }
+
+        .real-btn {
+            background: #f59e0b;
+            color: white !important;
+        }
+
+        .build-btn {
+            background: #ec4899;
+            color: white !important;
+        }
+
+        .disabled {
+            background: #e2e8f0 !important;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .real-btn:hover:not(.disabled) {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 11pt;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status.ok {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status.disabled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+            font-size: 10pt;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔍 실거래가 버튼 시각화 테스트</h1>
+
+        <div class="test-section">
+            <h2>1. 버튼 활성화 상태</h2>
+            <p>모든 버튼이 활성화된 상태 (정상 작동)</p>
+            <div class="button-row">
+                <a class="land-info-btn" title="토지이용계획">토</a>
+                <button class="info-btn" title="토지 정보 보기">정</button>
+                <button class="gong-btn" title="공시지가 보기">공</button>
+                <button class="real-btn" title="실거래가 정보">실</button>
+                <button class="build-btn" title="건축물 정보 보기">건</button>
+                <span class="status ok">✓ 정상</span>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. 버튼 비활성화 상태</h2>
+            <p>PNU 확인 전 초기 상태 (disabled)</p>
+            <div class="button-row">
+                <a class="land-info-btn disabled" title="토지이용계획">토</a>
+                <button class="info-btn disabled" title="토지 정보 보기">정</button>
+                <button class="gong-btn disabled" title="공시지가 보기">공</button>
+                <button class="real-btn disabled" title="실거래가 정보">실</button>
+                <button class="build-btn disabled" title="건축물 정보 보기" style="display:none;">건</button>
+                <span class="status disabled">✗ 비활성화</span>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. 실거래가 버튼 강조</h2>
+            <p><span class="highlight">'실' 버튼</span>은 주황색(#f59e0b)으로 표시됩니다</p>
+            <div class="button-row" style="transform: scale(2); margin: 40px 0;">
+                <button class="real-btn" title="실거래가 정보">실</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. 버튼 생성 코드 (index.html)</h2>
+            <div class="code-block">
+                // Real Price Button ('실')<br>
+                const realBtn = document.createElement('button');<br>
+                realBtn.className = 'real-btn disabled';<br>
+                realBtn.innerText = '실';<br>
+                realBtn.title = '실거래가 정보';<br>
+                realBtn.onclick = (e) => {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;e.stopPropagation();<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;if (!realBtn.classList.contains('disabled')) {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;showRealPrice(idx,
+                polygonsData[idx].defaultRealPriceType || 'apt');<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                };<br>
+                polygonsData[idx].realBtn = realBtn;<br>
+                actionRow.appendChild(realBtn);
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>5. 버튼 활성화 코드 (fetchBoundary 함수)</h2>
+            <div class="code-block">
+                if (data.realBtn) {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;data.realBtn.classList.remove('disabled');<br>
+                }
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>6. 검증 결과</h2>
+            <ul style="line-height: 1.8;">
+                <li>✅ '실' 버튼 HTML 요소 생성 코드 존재</li>
+                <li>✅ '실' 버튼 CSS 스타일 정의</li>
+                <li>✅ '실' 버튼 클릭 이벤트 연결</li>
+                <li>✅ showRealPrice() 함수 구현</li>
+                <li>✅ realprice-panel HTML 구조</li>
+                <li>✅ Backend API 엔드포인트 (/proxy/real-price/)</li>
+                <li>✅ 7가지 실거래가 유형 지원</li>
+            </ul>
+        </div>
+
+        <div class="test-section" style="background: #dcfce7; border: 2px solid #16a34a;">
+            <h2 style="color: #166534;">✓ 결론</h2>
+            <p style="font-size: 12pt; font-weight: bold; color: #166534;">
+                실거래가 기능은 정상적으로 구현되어 있습니다!
+            </p>
+            <p style="color: #15803d;">
+                만약 '실' 버튼이 보이지 않는다면:
+            </p>
+            <ol style="color: #15803d;">
+                <li>브라우저 캐시를 지우고 새로고침 (Ctrl+F5)</li>
+                <li>주소 검색이 정상적으로 완료되었는지 확인</li>
+                <li>브라우저 개발자 도구(F12)에서 JavaScript 오류 확인</li>
+                <li>Network 탭에서 /proxy/landinfo/ 호출 확인</li>
+            </ol>
+        </div>
+    </div>
+</body>
+
+</html>

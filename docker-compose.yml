@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    container_name: gundammap-backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8084:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - gundammap-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    container_name: gundammap-frontend
+    ports:
+      - "8004:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - gundammap-network
+
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - gundammap-network
+
+volumes:
+  postgres_data:
+
+
+networks:
+  gundammap-network:
+    driver: bridge

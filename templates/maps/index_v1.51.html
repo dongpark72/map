@@ -1,0 +1,2310 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="ko">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>건담맵 - v1.51</title>
+
+    <!-- Fonts -->
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+
+            --glass-bg: rgba(255, 255, 255, 0.85);
+
+            --glass-border: rgba(255, 255, 255, 0.4);
+
+            --primary: #2563eb;
+
+            --primary-hover: #1d4ed8;
+
+            --text: #1e293b;
+
+            --text-muted: #64748b;
+
+        }
+
+        body,
+
+        html {
+
+            margin: 0;
+
+            padding: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            font-family: 'Inter', 'Pretendard', sans-serif;
+
+            overflow: hidden;
+
+            background: #f8fafc;
+
+        }
+
+        .map-container {
+
+            position: absolute;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            z-index: 1;
+
+            visibility: hidden;
+
+            transition: opacity 0.3s ease;
+
+        }
+
+        .map-container.active {
+
+            visibility: visible;
+
+            z-index: 2;
+
+        }
+
+        #sidebar {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 240px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, left 0.3s ease;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+        }
+
+        #sidebar.collapsed {
+            transform: translateX(-270px);
+        }
+
+        .toggle-sidebar-btn {
+            position: absolute;
+            top: 16px;
+            left: 266px;
+            width: 26px;
+            height: 26px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+
+            border: 1px solid var(--glass-border);
+
+            border-radius: 8px;
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            cursor: pointer;
+
+            z-index: 1001;
+
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+            transition: left 0.3s ease;
+
+        }
+
+        #sidebar.collapsed+.toggle-sidebar-btn {
+            left: 16px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .control-group {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 6px;
+
+        }
+
+        label {
+            font-size: 7.5pt;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        textarea {
+            width: 100%;
+            height: 72px;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            resize: none;
+            font-size: 7.5pt;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            box-sizing: border-box;
+        }
+
+        button.primary-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 7.5pt;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button.primary-btn:hover {
+
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+
+        }
+
+        .toggle-group {
+
+            display: flex;
+
+            background: #f1f5f9;
+
+            padding: 4px;
+
+            border-radius: 12px;
+
+        }
+
+        .toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .toggle-option.selected {
+
+            background: white;
+
+            font-weight: 700;
+
+            color: var(--primary);
+
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+        }
+
+        .checkbox-wrapper {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            cursor: pointer;
+
+            font-size: 9pt;
+
+        }
+
+        #result-list {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 8px;
+
+        }
+
+        .result-item {
+
+            position: relative;
+
+            padding: 8px;
+
+            border-radius: 6px;
+
+            background: white;
+
+            border: 1px solid #f1f5f9;
+
+            font-size: 7.5pt;
+
+            transition: all 0.2s;
+
+        }
+
+        .result-item:hover {
+
+            transform: translateX(4px);
+
+            border-color: #fee2e2;
+
+        }
+
+        .result-item.selected {
+
+            background: #fff1f2;
+
+            border-color: #fda4af;
+
+        }
+
+        .badge-wrapper {
+
+            position: relative;
+
+            display: inline-block;
+
+            margin-right: 8px;
+
+        }
+
+        .badge {
+
+            display: inline-block;
+
+            width: 18px;
+
+            height: 18px;
+
+            line-height: 18px;
+
+            text-align: center;
+
+            background: #ef4444;
+
+            color: white;
+
+            border-radius: 3px;
+
+            font-size: 0.6rem;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            border: 1.5px solid white;
+
+            box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.1);
+
+        }
+
+        .color-picker {
+
+            position: absolute;
+
+            top: calc(100% + 5px);
+
+            left: 0;
+
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 8px;
+
+            display: none;
+
+            grid-template-columns: repeat(3, 1fr);
+
+            gap: 6px;
+
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+
+            z-index: 1001;
+
+            border: 1px solid #e2e8f0;
+
+        }
+
+        .color-picker.show {
+
+            display: grid;
+
+            z-index: 1100;
+
+        }
+
+        .color-dot {
+
+            width: 20px;
+
+            height: 20px;
+
+            border-radius: 50%;
+
+            cursor: pointer;
+
+            border: 1px solid rgba(0, 0, 0, 0.1);
+
+            transition: transform 0.1s;
+
+        }
+
+        .color-dot:hover {
+
+            transform: scale(1.2);
+
+        }
+
+        #debug-status {
+            position: fixed;
+            bottom: 5px;
+            right: 5px;
+            font-size: 10pt;
+            color: rgba(0, 0, 0, 0.7);
+            padding: 2px 6px;
+            z-index: 9999;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+        }
+
+        .alert-box {
+
+            padding: 8px;
+
+            border-radius: 6px;
+
+            background: #fee2e2;
+
+            color: #991b1b;
+
+            font-size: 0.65rem;
+
+            font-weight: 600;
+
+            border: 1px solid #fecaca;
+
+            display: none;
+
+        }
+
+        /* Map Controls (Top Right Overlay) */
+        #map-tools {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 1000;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+        }
+
+        .tool-group {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 2px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .tool-btn {
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: none;
+            white-space: nowrap;
+            height: 32px;
+        }
+
+        .tool-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .tool-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .tool-btn-icon {
+            width: 36px;
+            padding: 0;
+            font-size: 1.1rem;
+        }
+
+        .tool-divider {
+            width: 1px;
+            background: #e2e8f0;
+            margin: 6px 4px;
+        }
+
+        .land-info-btn {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            width: 15px;
+
+            height: 15px;
+
+            background: #059669;
+
+            color: white !important;
+
+            border-radius: 3px;
+
+            font-size: 7pt;
+
+            font-weight: bold;
+
+            text-decoration: none;
+
+            margin-top: 4px;
+
+            cursor: pointer;
+
+            transition: all 0.2s;
+
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+        }
+
+        .land-info-btn:hover {
+
+            background: #047857;
+
+            transform: translateY(-1px);
+
+        }
+
+        .land-info-btn.disabled {
+
+            background: #e2e8f0;
+
+            cursor: default;
+
+            pointer-events: none;
+
+            opacity: 0.5;
+
+        }
+
+        .result-content-wrapper {
+
+            display: flex;
+
+            flex-direction: column;
+
+            width: 100%;
+
+        }
+
+        .result-addr-row {
+
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 2px;
+
+        }
+
+        .result-action-row {
+
+            padding-left: 28px;
+
+            display: flex;
+
+            gap: 5px;
+
+        }
+
+        .result-info-row {
+            padding-left: 28px;
+            font-size: 7pt;
+            color: #ef4444;
+            /* Red color as in the image */
+            margin-top: 2px;
+            line-height: 1.3;
+            font-weight: normal;
+        }
+
+        .info-btn {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            width: 15px;
+
+            height: 15px;
+
+            background: #3b82f6;
+
+            color: white !important;
+
+            border-radius: 3px;
+
+            font-size: 7pt;
+
+            font-weight: bold;
+
+            text-decoration: none;
+
+            margin-top: 4px;
+
+            cursor: pointer;
+
+            transition: all 0.2s;
+
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+            border: none;
+
+        }
+
+        .info-btn:hover {
+
+            background: #2563eb;
+
+            transform: translateY(-1px);
+
+        }
+
+        .info-btn.disabled {
+
+            background: #e2e8f0;
+
+            cursor: default;
+
+            pointer-events: none;
+
+            opacity: 0.5;
+
+        }
+
+        #info-panel {
+            display: none;
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: fit-content;
+            min-width: 1000px;
+            max-width: 98vw;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px 20px;
+            z-index: 2000;
+            max-height: 40px;
+            /* Minimized height */
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            user-select: text;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-weight: normal;
+        }
+
+        #info-panel.visible {
+            display: block !important;
+        }
+
+        #info-panel.show {
+            max-height: 80vh;
+            overflow-y: hidden;
+            /* Header handles dragging, content handles scroll */
+        }
+
+        .info-panel-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            height: 30px;
+            margin-bottom: 5px;
+            cursor: move;
+            user-select: none;
+        }
+
+        .info-panel-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #2563eb;
+            margin-right: auto;
+            /* Push buttons to right */
+        }
+
+        .header-btns {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .info-toggle-btn {
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            color: #2563eb;
+            padding: 1px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .info-panel-close {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+            background: white;
+            margin-bottom: 0;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-weight: normal;
+        }
+
+        .info-table-container {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 50vh;
+            margin-bottom: 0;
+            border: 1px solid #d1d5db;
+        }
+
+        .info-table th {
+            background: #253858;
+            color: white;
+            font-weight: 600;
+            padding: 6px 10px;
+            border: 1px solid #4a5568;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .info-table td {
+            background: white;
+            color: #1f2937;
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 공시지가 패널 스타일 */
+        #price-panel {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            width: 240px;
+            /* 80% of original 300px */
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px;
+            /* Reduced from 15px */
+            z-index: 2000;
+            transition: right 0.3s ease, transform 0.3s ease;
+            user-select: text;
+            display: none;
+            /* Hidden until '공' button is clicked */
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-weight: normal;
+        }
+
+        #price-panel.minimized {
+            transform: translateY(-50%) translateX(220px);
+        }
+
+        #price-panel.active {
+            right: 0;
+        }
+
+        .price-panel-toggle {
+            position: absolute;
+            left: -28px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 50px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 2001;
+        }
+
+        .price-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            /* Reduced from 12px */
+            padding-bottom: 2px;
+            /* Reduced from 8px */
+            /* Removed border-bottom for a cleaner look without title */
+            cursor: move;
+            user-select: none;
+        }
+
+        .price-panel-title-text {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .price-panel-title {
+            display: none;
+            /* Removed title as per user request */
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .price-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+
+        /* Column-based layout for separate selection */
+        .price-grid {
+            display: flex;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 8.5pt;
+        }
+
+        .price-col {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            border-right: 1px solid #cbd5e1;
+        }
+
+        .price-col:last-child {
+            border-right: none;
+        }
+
+        .price-cell {
+            padding: 4px 4px;
+            text-align: center;
+            border-bottom: 1px solid #cbd5e1;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-weight: normal;
+        }
+
+        .price-cell.header {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .price-cell:last-child {
+            border-bottom: none;
+        }
+
+        /* Allow easier column selection */
+        .price-cell {
+            user-select: text;
+        }
+
+        /* '공' 버튼 스타일 */
+        .gong-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            background: #f59e0b;
+            /* Amber/Orange */
+            color: white !important;
+            border-radius: 3px;
+            font-size: 7pt;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .gong-btn:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+        .gong-btn.disabled {
+            background: #e2e8f0;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* '건' 버튼 스타일 */
+        .build-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            background: #7c3aed;
+            /* Purple */
+            color: white !important;
+            border-radius: 3px;
+            font-size: 7pt;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .build-btn:hover {
+            background: #6d28d9;
+            transform: translateY(-1px);
+        }
+
+        .build-btn.disabled {
+            background: #e2e8f0;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* 건축물 상세 패널 스타일 */
+        /* 건축물 상세 패널 스타일 */
+        #building-panel {
+            display: none;
+            position: absolute;
+            top: 16px;
+            left: 320px;
+            width: 500px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px;
+            z-index: 1005;
+            max-height: 95vh;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            user-select: text;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-weight: normal;
+            transition: max-height 0.3s ease;
+        }
+
+        #building-panel.minimized {
+            max-height: 45px;
+        }
+
+        .bld-detail-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #2563eb;
+            text-align: center;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            user-select: none;
+        }
+
+        #building-detail-content {
+            overflow-y: auto;
+            max-height: calc(95vh - 50px);
+            padding-right: 4px;
+            /* Space for scrollbar */
+        }
+
+        /* General Table */
+        .bld-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            margin-bottom: 8px;
+            background: white;
+            border-top: 2px solid #60a5fa;
+            /* Light blue top border */
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .bld-table th {
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 700;
+            padding: 6px 8px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            width: 20%;
+        }
+
+        .bld-table td {
+            background: white;
+            color: #1e293b;
+            padding: 6px 8px;
+            border: 1px solid #e2e8f0;
+            width: 30%;
+        }
+
+        /* Sub Header for Status */
+        .bld-sub-header {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #3b82f6;
+            /* Matching blue */
+            margin: 16px 0 8px 0;
+            text-align: center;
+            padding-top: 4px;
+        }
+
+        /* Status List Table */
+        .bld-list-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            background: white;
+            border-top: 2px solid #60a5fa;
+            /* Light blue top border */
+        }
+
+        .bld-list-table th {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 6px;
+            border: 1px solid #e2e8f0;
+            border-bottom: 1px solid #cbd5e1;
+            font-weight: 700;
+            white-space: nowrap;
+            text-align: left;
+            /* Image has left align usually, but center looks ok too. Let's try left for headers based on image? No, image headers look left-aligned except center? Let's use left/center based on column */
+        }
+
+        .bld-list-table th:nth-child(n+2) {
+            /* 층별, 구조, 용도, 면적 */
+            /* Actually image headers look centered or left. Let's stick to standard table style */
+        }
+
+        .bld-list-table td {
+            padding: 6px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        /* Specific column alignments if needed */
+        .bld-list-table td:nth-child(1) {
+            font-weight: bold;
+            text-align: center;
+            width: 40px;
+        }
+
+        /* 구분 */
+        .bld-list-table td:nth-child(2) {
+            text-align: center;
+            width: 50px;
+        }
+
+        /* 층별 */
+        .bld-list-table td:last-child {
+            text-align: right;
+        }
+
+        /* 면적 */
+    </style>
+
+    <!-- Map SDKs -->
+
+    <script type="text/javascript"
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey={{ kakao_maps_api_key }}&libraries=services"></script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}"></script>
+
+</head>
+
+<body>
+
+    <div id="map-kakao" class="map-container active"></div>
+
+    <div id="map-google" class="map-container"></div>
+    <!-- 하단 정보 패널 -->
+    <div id="info-panel">
+        <div class="info-panel-header" id="info-panel-header">
+            <span class="info-panel-title">토지 정보</span>
+            <div class="header-btns">
+                <button class="info-toggle-btn" onclick="toggleInfoPanel(event)"
+                    style="background:none; border:none; border-radius:0; padding:0 8px; font-size:1rem; opacity:0.7;">▲</button>
+                <button class="info-panel-close" onclick="closeInfoPanel()">×</button>
+            </div>
+        </div>
+        <div id="info-content">
+            <!-- JavaScript will populate this -->
+        </div>
+    </div>
+
+    <!-- 공시지가 패널 -->
+    <div id="price-panel">
+        <button class="price-panel-toggle" onclick="togglePricePanel(event)">◀</button>
+        <div class="price-panel-header" id="price-panel-header">
+            <span class="price-panel-title-text">공시지가</span>
+            <button class="price-close-btn" onclick="closePricePanel()">×</button>
+        </div>
+        <div id="price-content">
+            <!-- JavaScript will populate this -->
+        </div>
+    </div>
+
+    <div id="sidebar">
+
+        <div id="server-alert" class="alert-box">⚠️ 반드시 [http://175.126.187.59:8000/] 주소로 접속해 주세요.</div>
+
+        <div class="control-group">
+
+            <label>주소 입력</label>
+
+            <textarea id="address-input" placeholder="여러 주소 입력... (우클릭으로 추가 가능)"></textarea>
+
+            <button class="primary-btn" onclick="handleSearch()">검색 및 지적경계 표시</button>
+
+        </div>
+
+        <div id="result-list"></div>
+
+    </div>
+
+    <div class="toggle-sidebar-btn" onclick="toggleSidebar()">
+
+        <span id="toggle-icon">◀</span>
+    </div>
+
+    <div id="map-tools">
+        <!-- Map Type Group -->
+        <div class="tool-group">
+            <button class="tool-btn" id="btn-map-normal" onclick="switchMapType('normal')">지도</button>
+            <button class="tool-btn active" id="btn-map-satellite" onclick="switchMapType('satellite')">스카이뷰</button>
+        </div>
+
+        <!-- Provider Group -->
+        <div class="tool-group">
+            <button class="tool-btn active" id="btn-prov-kakao" onclick="switchProvider('kakao')">카카오</button>
+            <button class="tool-btn" id="btn-prov-google" onclick="switchProvider('google')">구글</button>
+        </div>
+
+        <!-- Layer Toggle -->
+        <div class="tool-group">
+            <button class="tool-btn tool-btn-icon" id="btn-cadastral" title="지적편집도" onclick="toggleCadastral()">
+                🥞
+            </button>
+        </div>
+    </div>
+    <div id="building-panel">
+        <div class="bld-detail-title" id="building-panel-header">
+            <span class="bld-panel-title-text">일반건축물대장 일반건축물</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button onclick="toggleBuildingPanel(event)"
+                    style="background:none; border:none; cursor:pointer; font-size:1rem; color:#64748b; padding:0 4px;">▲</button>
+                <button onclick="closeBuildingPanel()"
+                    style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:#64748b; padding:0 4px;">×</button>
+            </div>
+        </div>
+        <div id="building-detail-content">
+            <!-- JavaScript will populate this -->
+        </div>
+    </div>
+
+    <script>
+
+        let mapKakao, mapGoogle;
+
+        let polygonsData = []; // [{ kakao: [], google: [], markersK: [], markersG: [], badgeEl: el, landBtn: el, infoBtn: el }]
+
+        let currentProvider = 'kakao', currentMapType = 'satellite';
+
+        let kakaoGeocoder, kakaoPlaces;
+
+        let resultCount = 0;
+
+
+        const PALETTE = [
+
+            '#FF0000', // Red
+
+            '#0000FF', // Blue
+
+            '#00AA00', // Green
+
+            '#FF8800', // Orange
+
+            '#9900FF', // Purple
+
+            '#FF00FF', // Pink
+
+            '#00CCCC', // Cyan
+
+            '#FFD700', // Yellow
+
+            '#8B4513'  // Brown
+
+        ];
+
+        function toggleSidebar() {
+
+            const sidebar = document.getElementById('sidebar');
+
+            const icon = document.getElementById('toggle-icon');
+
+            sidebar.classList.toggle('collapsed');
+
+            if (sidebar.classList.contains('collapsed')) {
+
+                icon.innerText = '▶';
+
+            } else {
+
+                icon.innerText = '◀';
+
+            }
+
+        }
+
+        window.onload = function () {
+
+            if (window.location.protocol === 'file:') {
+
+                document.getElementById('server-alert').style.display = 'block';
+
+            }
+
+            initMaps();
+
+            kakaoGeocoder = new kakao.maps.services.Geocoder();
+
+            kakaoPlaces = new kakao.maps.services.Places();
+
+            // Click outside to close color picker
+
+            document.addEventListener('click', (e) => {
+
+                if (!e.target.closest('.badge-wrapper')) {
+
+                    document.querySelectorAll('.color-picker').forEach(p => p.classList.remove('show'));
+
+                }
+
+            });
+
+            initDraggable(document.getElementById('building-panel'), document.getElementById('building-panel-header'));
+            initDraggable(document.getElementById('info-panel'), document.getElementById('info-panel-header'));
+            initDraggable(document.getElementById('price-panel'), document.getElementById('price-panel-header'));
+        };
+
+        function initDraggable(el, header) {
+            if (!el || !header) return;
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            header.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                if (e.target.tagName === 'BUTTON') return; // Don't drag when clicking buttons
+                e.preventDefault();
+
+                // If element has dynamic positioning, fix it to current absolute pixels for dragging
+                if (el.id === 'info-panel' || el.id === 'price-panel') {
+                    const rect = el.getBoundingClientRect();
+                    el.style.left = rect.left + 'px';
+                    el.style.top = rect.top + 'px';
+                    el.style.bottom = 'auto';
+                    el.style.right = 'auto';
+                    el.style.transform = 'none'; // Temporarily clear transform for pixel-perfect dragging
+                    el.style.transition = 'none'; // Stop sliding during drag
+                    el.setAttribute('data-dragged', 'true');
+                }
+
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                el.style.top = (el.offsetTop - pos2) + "px";
+                el.style.left = (el.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+
+        function initMaps() {
+
+            // 서울시 종로구 우정국로 48 좌표
+
+            const lat = 37.5732;
+
+            const lng = 126.9840;
+
+            const center = new kakao.maps.LatLng(lat, lng);
+
+            mapKakao = new kakao.maps.Map(document.getElementById('map-kakao'), { center, level: 3, mapTypeId: kakao.maps.MapTypeId.HYBRID });
+
+            mapGoogle = new google.maps.Map(document.getElementById('map-google'), { center: { lat, lng }, zoom: 18, mapTypeId: 'hybrid', mapTypeControl: false });
+
+            kakao.maps.event.addListener(mapKakao, 'rightclick', (mouseEvent) => {
+
+                addAddressAtLocation(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
+
+            });
+
+            mapGoogle.addListener('rightclick', (event) => {
+
+                addAddressAtLocation(event.latLng.lat(), event.latLng.lng());
+
+            });
+
+        }
+
+        function addAddressAtLocation(lat, lng) {
+
+            const debugStatus = document.getElementById('debug-status');
+
+            kakaoGeocoder.coord2Address(lng, lat, (result, status) => {
+
+                if (status === kakao.maps.services.Status.OK) {
+
+                    const addr = result[0].address.address_name;
+
+                    const input = document.getElementById('address-input');
+
+                    input.value = (input.value.trim() ? input.value.trim() + '\n' : '') + addr;
+
+                    if (debugStatus) debugStatus.innerText = `주소 추가됨: ${addr}`;
+
+                    input.scrollTop = input.scrollHeight;
+
+                }
+
+            });
+
+        }
+
+        function switchProvider(p) {
+            currentProvider = p;
+
+            // Update UI
+            document.querySelectorAll('#btn-prov-kakao, #btn-prov-google').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-prov-${p}`).classList.add('active');
+
+            document.querySelectorAll('.map-container').forEach(m => m.classList.remove('active'));
+            document.getElementById(`map-${p}`).classList.add('active');
+
+            if (p === 'kakao' && mapKakao) mapKakao.relayout();
+        }
+
+        function switchMapType(t) {
+            currentMapType = t;
+
+            // Update UI
+            document.querySelectorAll('#btn-map-normal, #btn-map-satellite').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-map-${t}`).classList.add('active');
+
+            if (mapKakao) mapKakao.setMapTypeId(t === 'satellite' ? kakao.maps.MapTypeId.HYBRID : kakao.maps.MapTypeId.ROADMAP);
+            if (mapGoogle) mapGoogle.setMapTypeId(t === 'satellite' ? 'hybrid' : 'roadmap');
+        }
+
+        function toggleCadastral() {
+            const btn = document.getElementById('btn-cadastral');
+            const isActive = btn.classList.toggle('active');
+
+            if (mapKakao) {
+                if (isActive) {
+                    mapKakao.addOverlayMapTypeId(kakao.maps.MapTypeId.USE_DISTRICT);
+                } else {
+                    mapKakao.removeOverlayMapTypeId(kakao.maps.MapTypeId.USE_DISTRICT);
+                }
+            }
+        }
+
+        async function handleSearch() {
+            const input = document.getElementById('address-input').value.trim();
+            if (!input) return;
+
+            const debugStatus = document.getElementById('debug-status');
+            if (debugStatus) debugStatus.innerText = '검색 중...';
+
+            const addresses = input.split('\n').map(a => a.trim()).filter(a => a);
+            clearPolygons();
+            resultCount = 0;
+            document.getElementById('result-list').innerHTML = '';
+
+            for (const addr of addresses) {
+                await performSearch(addr);
+            }
+
+            if (debugStatus) debugStatus.innerText = '검색 완료';
+        }
+
+        function performSearch(addr) {
+            return new Promise((resolve) => {
+                kakaoGeocoder.addressSearch(addr, (result, status) => {
+
+                    if (status === kakao.maps.services.Status.OK) {
+
+                        processResult(result[0], addr);
+
+                        resolve();
+
+                    } else {
+
+                        kakaoPlaces.keywordSearch(addr, (kResult, kStatus) => {
+
+                            if (kStatus === kakao.maps.services.Status.OK) {
+
+                                reverseAndProcess(kResult[0].y, kResult[0].x, addr).then(resolve);
+
+                            } else {
+
+                                logResult(`검색 실패: ${addr}`, 'red');
+
+                                resolve();
+
+                            }
+
+                        });
+
+                    }
+
+                });
+            });
+        }
+
+        function reverseAndProcess(lat, lng, addr) {
+
+            return new Promise((resolve) => {
+
+                kakaoGeocoder.coord2Address(lng, lat, (result, status) => {
+
+                    if (status === kakao.maps.services.Status.OK) {
+
+                        processResult(result[0], addr, lat, lng);
+
+                    } else {
+
+                        displayMarkersOnly(lat, lng);
+
+                    }
+
+                    resolve();
+
+                });
+
+            });
+
+        }
+
+        function processResult(kakaoRes, addr, lat, lng) {
+            const fLat = lat || kakaoRes.y;
+            const fLng = lng || kakaoRes.x;
+            displayMarkersOnly(fLat, fLng);
+
+            // Use official address name from kakaoRes if available, otherwise fallback to input
+            const officialAddr = (kakaoRes.address ? kakaoRes.address.address_name : null) || kakaoRes.address_name || addr;
+
+            const itemIdx = logResult(`${officialAddr}`, 'inherit', fLat, fLng);
+
+            const jibunInfo = kakaoRes.address || kakaoRes.road_address;
+
+            if (jibunInfo && jibunInfo.b_code) {
+
+                fetchBoundary(jibunInfo, addr, itemIdx);
+
+            }
+
+        }
+
+        function displayMarkersOnly(lat, lng) {
+
+            const centerK = new kakao.maps.LatLng(lat, lng);
+
+            const centerG = { lat: parseFloat(lat), lng: parseFloat(lng) };
+
+            mapKakao.panTo(centerK); mapKakao.setLevel(2);
+
+            mapGoogle.panTo(centerG); mapGoogle.setZoom(19);
+
+        }
+
+        async function fetchBoundary(info, originalAddr, itemIdx) {
+
+            const bCode = (info.b_code || "").substring(0, 10);
+
+            const san = info.mountain_yn === 'Y' ? '2' : '1';
+
+            const extractDigit = (val) => (val || "").toString().replace(/[^0-9]/g, "");
+
+            const bun = extractDigit(info.main_address_no || info.main_no || "").padStart(4, '0');
+
+            const ho = extractDigit(info.sub_address_no || info.sub_no || "").padStart(4, '0');
+
+            const pnu = `${bCode}${san}${bun}${ho}`;
+
+            // Update Land Info Button URL and Info Button
+
+            const data = polygonsData[itemIdx];
+
+            if (data) {
+
+                data.pnu = pnu; // Store PNU
+
+                if (data.landBtn) {
+
+                    // Use pnu parameter instead of selPnu for better compatibility
+
+                    data.landBtn.href = `https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?pnu=${pnu}&mode=search&isNoScr=script`;
+
+                    data.landBtn.title = `토지이용계획 확인 (PNU: ${pnu})`;
+
+                    data.landBtn.classList.remove('disabled');
+
+                }
+
+                if (data.infoBtn) {
+
+                    data.infoBtn.classList.remove('disabled');
+
+                }
+
+                if (data.gongBtn) {
+                    data.gongBtn.classList.remove('disabled');
+                }
+
+                if (data.buildBtn) {
+                    data.buildBtn.classList.remove('disabled');
+                }
+
+                // Fetch land summary for result list item
+                fetch(`/proxy/landinfo/?pnu=${pnu}`)
+                    .then(res => res.json())
+                    .then(resJson => {
+                        if (resJson.status === 'OK' && resJson.data && resJson.data.land) {
+                            const l = resJson.data.land;
+
+                            // Format area
+                            let areaStr = l['면적'] || '-';
+                            if (areaStr !== '-') {
+                                const num = areaStr.toString().replace(/[^0-9.]/g, '');
+                                if (num) areaStr = Number(num).toLocaleString('ko-KR', { maximumFractionDigits: 0 });
+                            }
+
+                            // Get latest price
+                            const years = ['2025', '2024', '2023'];
+                            let priceStr = '-';
+                            for (const y of years) {
+                                if (l[y]) {
+                                    const pVal = l[y].toString().replace(/[^0-9]/g, '');
+                                    if (pVal) {
+                                        priceStr = `${Number(pVal).toLocaleString()}원/㎡`;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            const parts = [
+                                areaStr !== '-' ? `${areaStr}㎡` : '',
+                                priceStr !== '-' ? priceStr : '',
+                                l['용도지역1'] || '',
+                                l['지목'] || '',
+                                l['도로'] || ''
+                            ].filter(p => p && p.trim() !== '');
+                            const summary = parts.join(', ');
+
+                            if (data.infoRow) {
+                                data.infoRow.innerText = summary;
+                            }
+                        }
+                    })
+                    .catch(err => console.error('Summary fetch error:', err));
+            }
+
+            try {
+
+                const proxyUrl = `/proxy/parcel/?pnu=${pnu}`;
+
+                const response = await fetch(proxyUrl);
+
+                const data = await response.json();
+
+                if (data.response?.status === 'OK') {
+
+                    const features = data.response.result?.featureCollection?.features;
+
+                    if (features?.length > 0) {
+
+                        drawPolygonsForIdx(features[0].geometry, itemIdx);
+
+                    }
+
+                }
+
+            } catch (e) { console.error(e); }
+
+        }
+
+        function drawPolygonsForIdx(geom, idx) {
+            const data = polygonsData[idx];
+            if (!data) return;
+
+            const color = PALETTE[0]; // 기본 빨강
+
+            const paths = geom.type === 'Polygon' ? [geom.coordinates[0]] : geom.coordinates.map(c => c[0]);
+
+            paths.forEach(path => {
+
+                const kPath = path.map(c => new kakao.maps.LatLng(c[1], c[0]));
+
+                const gPath = path.map(c => ({ lat: c[1], lng: c[0] }));
+
+                const kPoly = new kakao.maps.Polygon({ map: mapKakao, path: kPath, strokeWeight: 1.8, strokeColor: color, strokeOpacity: 0.9, fillColor: color, fillOpacity: 0.1 });
+
+                const gPoly = new google.maps.Polygon({ map: mapGoogle, paths: gPath, strokeColor: color, strokeOpacity: 0.9, strokeWeight: 1.8, fillColor: color, fillOpacity: 0.1 });
+
+                data.kakao.push(kPoly);
+
+                data.google.push(gPoly);
+
+            });
+
+        }
+
+        function updateColor(idx, color) {
+
+            const data = polygonsData[idx];
+            if (!data) return;
+
+            data.badgeEl.style.background = color;
+
+            data.kakao.forEach(p => {
+
+                p.setOptions({ strokeColor: color, fillColor: color });
+
+            });
+
+            data.google.forEach(p => {
+
+                p.setOptions({ strokeColor: color, fillColor: color });
+
+            });
+
+            data.markersK.forEach(m => {
+
+                const inner = m.getContent().querySelector('.map-badge');
+
+                if (inner) inner.style.background = color;
+
+            });
+
+            // Google simple marker label doesn't support background color change easily without custom icons
+
+            // So we might just keep it or use a more complex overlay for Google if needed.
+
+        }
+
+        function logResult(msg, color = 'inherit', lat, lng) {
+
+            const idx = resultCount++;
+
+            const num = resultCount;
+
+            const defaultColor = PALETTE[0];
+
+            polygonsData[idx] = { kakao: [], google: [], markersK: [], markersG: [], badgeEl: null, landBtn: null, infoBtn: null, gongBtn: null, buildBtn: null, pnu: null, infoRow: null };
+
+            const item = document.createElement('div');
+
+            item.className = 'result-item';
+
+            const contentWrapper = document.createElement('div');
+
+            contentWrapper.className = 'result-content-wrapper';
+
+            const addrRow = document.createElement('div');
+
+            addrRow.className = 'result-addr-row';
+
+            const badgeWrapper = document.createElement('div');
+
+            badgeWrapper.className = 'badge-wrapper';
+
+            const badge = document.createElement('div');
+
+            badge.className = 'badge';
+
+            badge.innerText = num;
+
+            badge.onclick = (e) => {
+
+                e.stopPropagation();
+
+                // Close other pickers
+
+                document.querySelectorAll('.color-picker').forEach(p => p !== picker && p.classList.remove('show'));
+
+                // Toggle this picker
+
+                const isShowing = picker.classList.contains('show');
+
+                picker.classList.toggle('show');
+
+                // Bring parent item to front when picker is shown
+
+                if (!isShowing) {
+
+                    item.style.zIndex = "1050";
+
+                } else {
+
+                    item.style.zIndex = "";
+
+                }
+
+            };
+
+            polygonsData[idx].badgeEl = badge;
+
+            const picker = document.createElement('div');
+
+            picker.className = 'color-picker';
+
+            PALETTE.forEach(c => {
+
+                const dot = document.createElement('div');
+
+                dot.className = 'color-dot';
+
+                dot.style.background = c;
+
+                dot.onclick = (e) => {
+
+                    e.stopPropagation();
+
+                    updateColor(idx, c);
+
+                    picker.classList.remove('show');
+
+                };
+
+                picker.appendChild(dot);
+
+            });
+
+            badgeWrapper.appendChild(badge);
+
+            badgeWrapper.appendChild(picker);
+
+            addrRow.appendChild(badgeWrapper);
+
+            addrRow.appendChild(document.createTextNode(` ${msg}`));
+
+            const actionRow = document.createElement('div');
+
+            actionRow.className = 'result-action-row';
+
+            const landBtn = document.createElement('a');
+
+            landBtn.className = 'land-info-btn disabled';
+
+            landBtn.innerText = '토';
+
+            landBtn.target = '_blank';
+
+            landBtn.title = '토지이용계획 (토지이음)';
+
+            landBtn.onclick = (e) => e.stopPropagation();
+
+            polygonsData[idx].landBtn = landBtn;
+
+            actionRow.appendChild(landBtn);
+
+            // Info Button ('정')
+
+            const infoBtn = document.createElement('button');
+
+            infoBtn.className = 'info-btn disabled';
+
+            infoBtn.innerText = '정';
+
+            infoBtn.title = '토지 정보 보기';
+
+            infoBtn.onclick = (e) => {
+
+                e.stopPropagation();
+
+                if (!infoBtn.classList.contains('disabled')) {
+
+                    showLandInfo(idx);
+
+                }
+
+            };
+
+            polygonsData[idx].infoBtn = infoBtn;
+            polygonsData[idx].listItem = item;
+
+            actionRow.appendChild(infoBtn);
+
+            // Gong Button ('공')
+            const gongBtn = document.createElement('button');
+            gongBtn.className = 'gong-btn disabled';
+            gongBtn.innerText = '공';
+            gongBtn.title = '공시지가 보기';
+            gongBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (!gongBtn.classList.contains('disabled')) {
+                    showPriceTable(idx);
+                }
+            };
+            polygonsData[idx].gongBtn = gongBtn;
+            actionRow.appendChild(gongBtn);
+
+            // Building Button ('건')
+            const buildBtn = document.createElement('button');
+            buildBtn.className = 'build-btn disabled';
+            buildBtn.innerText = '건';
+            buildBtn.title = '건축물 정보 보기';
+            buildBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (!buildBtn.classList.contains('disabled')) {
+                    showBuildingDetail(idx);
+                }
+            };
+            polygonsData[idx].buildBtn = buildBtn;
+            actionRow.appendChild(buildBtn);
+
+            const infoRow = document.createElement('div');
+            infoRow.className = 'result-info-row';
+            infoRow.innerText = ''; // Initially empty
+            polygonsData[idx].infoRow = infoRow;
+
+            contentWrapper.appendChild(addrRow);
+            contentWrapper.appendChild(infoRow);
+
+            contentWrapper.appendChild(actionRow);
+
+            item.appendChild(contentWrapper);
+
+            item.onclick = () => {
+
+                document.querySelectorAll('.result-item').forEach(i => i.classList.remove('selected'));
+
+                item.classList.add('selected');
+
+                if (lat && lng) displayMarkersOnly(lat, lng);
+
+            };
+
+            document.getElementById('result-list').appendChild(item);
+
+            // Add Markers to Map
+
+            if (lat && lng) {
+
+                // Kakao Marker
+
+                const kContent = document.createElement('div');
+
+                kContent.innerHTML = `<div class="map-badge" style="background: ${defaultColor}; color: white; padding: 1px 5px; border-radius: 3px; font-size: 8pt; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transform: translateY(-15px);">${num}</div>`;
+
+                const kOverlay = new kakao.maps.CustomOverlay({
+
+                    position: new kakao.maps.LatLng(lat, lng),
+
+                    content: kContent,
+
+                    map: mapKakao
+
+                });
+
+                polygonsData[idx].markersK.push(kOverlay);
+
+                // Google Marker
+
+                const gMarker = new google.maps.Marker({
+
+                    position: { lat: parseFloat(lat), lng: parseFloat(lng) },
+
+                    map: mapGoogle,
+
+                    label: {
+
+                        text: num.toString(),
+
+                        color: 'white',
+
+                        fontSize: '8pt',
+
+                        fontWeight: 'bold'
+
+                    }
+
+                });
+
+                polygonsData[idx].markersG.push(gMarker);
+
+            }
+
+            return idx;
+
+        }
+
+        async function showLandInfo(idx) {
+            const data = polygonsData[idx];
+            if (!data) return;
+            const pnu = data.pnu;
+            const panel = document.getElementById('info-panel');
+            const content = document.getElementById('info-content');
+
+            panel.classList.add('visible');
+            panel.classList.add('show');
+            content.innerHTML = '<p style="text-align: center; color: #64748b;">정보를 불러오는 중...</p>';
+
+            try {
+                const response = await fetch(`/proxy/landinfo/?pnu=${pnu}`);
+                const resJson = await response.json();
+
+                if (resJson.status === 'OK' && resJson.data) {
+                    const land = resJson.data.land;
+                    const blds = resJson.data.buildings || [];
+                    console.log('Fetched Land Info:', resJson.data);
+
+                    let html = '<div class="info-table-container">';
+
+                    // 토지 정보 테이블
+                    html += '<table class="info-table"><thead><tr>';
+                    const landKeys = ['소재지', '용도지역1', '용도지역2', '지목', '이용상황', '면적', '도로', '형상', '지세', '2025', '2024', '2023'];
+                    landKeys.forEach(k => {
+                        let label = k;
+                        if (k === '면적') label = '면적(m²)';
+                        html += `<th>${label}</th>`;
+                    });
+                    html += '</tr></thead><tbody><tr>';
+                    landKeys.forEach(k => {
+                        let val = land[k] || '';
+                        if (['2025', '2024', '2023'].includes(k) && val) {
+                            const num = val.toString().replace(/[^0-9]/g, '');
+                            if (num) val = Number(num).toLocaleString();
+                        }
+                        if (k === '면적' && val) {
+                            const num = val.toString().replace(/[^0-9.]/g, '');
+                            if (num) val = Number(num).toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+                        }
+                        html += `<td>${val}</td>`;
+                    });
+                    html += '</tr></tbody></table></div>';
+
+                    // 건축물 정보 테이블 (여러 동 표시)
+                    console.log(`Displaying ${blds.length} buildings:`, blds);
+
+                    html += '<div class="info-table-container">';
+                    html += '<table class="info-table"><thead><tr>';
+                    const bldKeys = ['건물명', '동명칭', '사용승인일', '구조', '지붕', '주용도', '지하', '지상', '연면적', '용적연면적', '건축면적', '대지', '높이', '건폐율', '용적률'];
+                    bldKeys.forEach(k => {
+                        let label = k;
+                        if (['연면적', '용적연면적', '건축면적', '대지'].includes(k)) label += '(m²)';
+                        if (k === '높이') label += '(m)';
+                        if (['건폐율', '용적률'].includes(k)) label += '(%)';
+                        html += `<th>${label}</th>`;
+                    });
+                    html += '</tr></thead><tbody>';
+
+                    if (blds.length > 0) {
+                        blds.forEach(bld => {
+                            html += '<tr>';
+                            bldKeys.forEach(k => {
+                                let val = bld[k] || '';
+                                if (k === '사용승인일' && val && val.toString().length === 8) {
+                                    val = val.toString().substring(0, 4) + '-' + val.toString().substring(4, 6) + '-' + val.toString().substring(6, 8);
+                                }
+                                if (['연면적', '용적연면적', '건축면적', '대지', '높이', '건폐율', '용적률'].includes(k) && val) {
+                                    const num = val.toString().replace(/[^0-9.]/g, '');
+                                    if (num) val = Number(num).toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+                                }
+                                html += `<td>${val}</td>`;
+                            });
+                            html += '</tr>';
+                        });
+                    } else {
+                        html += `<tr><td colspan="${bldKeys.length}" style="color: #64748b; padding: 20px;">건축물 정보가 없습니다.</td></tr>`;
+                    }
+                    html += '</tbody></table></div>';
+
+                    content.innerHTML = html;
+                }
+                else {
+                    content.innerHTML = `<p style="text-align: center; color: #ef4444;">정보를 불러올 수 없습니다: ${data.message || '알 수 없는 오류'}</p>`;
+                }
+            } catch (error) {
+                console.error('Land info fetch error:', error);
+                content.innerHTML = '<p style="text-align: center; color: #ef4444;">정보를 불러오는 중 오류가 발생했습니다.</p>';
+            }
+        }
+
+        function toggleInfoPanel(e) {
+            const panel = document.getElementById('info-panel');
+            const btn = e.currentTarget;
+
+            // To "hide below", we MUST anchor to the current bottom edge.
+            const rect = panel.getBoundingClientRect();
+            const vh = window.innerHeight;
+
+            // Calculate current bottom position from viewport bottom
+            const currentBottom = vh - rect.bottom;
+
+            // Set styles to anchor to bottom
+            panel.style.top = 'auto';
+            panel.style.bottom = currentBottom + 'px';
+
+            // Re-apply horizontal position
+            if (panel.style.left && panel.style.left !== 'auto' && panel.style.left !== '50%') {
+                panel.style.transform = 'none';
+            } else {
+                panel.style.left = '50%';
+                panel.style.transform = 'translateX(-50%)';
+            }
+
+            // Apply transition and toggle
+            panel.style.transition = 'max-height 0.3s ease, bottom 0.3s ease';
+            panel.classList.toggle('show');
+            btn.innerText = panel.classList.contains('show') ? '▼' : '▲';
+        }
+
+        function closeInfoPanel() {
+            const panel = document.getElementById('info-panel');
+            if (panel) {
+                panel.classList.remove('visible');
+                panel.classList.remove('show');
+                // Reset toggle button icon if it exists
+                const toggleBtn = panel.querySelector('.info-toggle-btn');
+                if (toggleBtn) toggleBtn.innerText = '▲';
+            }
+        }
+
+        async function showPriceTable(idx) {
+            const data = polygonsData[idx];
+            if (!data) return;
+            const pnu = data.pnu;
+            const panel = document.getElementById('price-panel');
+            const content = document.getElementById('price-content');
+            const toggleBtn = panel.querySelector('.price-panel-toggle');
+
+            panel.style.display = 'block'; // Ensure block display
+            panel.style.transition = 'right 0.3s ease, transform 0.3s ease';
+            panel.classList.add('active');
+            panel.classList.remove('minimized');
+            if (toggleBtn) toggleBtn.innerText = '▶'; // Visible -> Show "Hide" icon
+
+            content.innerHTML = '<p style="text-align: center; color: #64748b; font-size: 8pt;">불러오는 중...</p>';
+
+            try {
+                const response = await fetch(`/proxy/landinfo/?pnu=${pnu}`);
+                const resJson = await response.json();
+
+                if (resJson.status === 'OK' && resJson.data && resJson.data.land) {
+                    const land = resJson.data.land;
+                    const years = ['2025', '2024', '2023'];
+
+                    let html = '<div class="price-grid">';
+
+                    // Column 1: Year
+                    html += '<div class="price-col"><div class="price-cell header">연도</div>';
+                    years.forEach(y => html += `<div class="price-cell">${y}</div>`);
+                    html += '</div>';
+
+                    // Column 2: M2
+                    html += '<div class="price-col"><div class="price-cell header">공시지가(㎡)</div>';
+                    years.forEach(y => html += `<div class="price-cell">${land[y] || '-'}</div>`);
+                    html += '</div>';
+
+                    // Column 3: Pyung
+                    html += '<div class="price-col"><div class="price-cell header">공시지가(평)</div>';
+                    years.forEach(y => {
+                        let pM2 = land[y] || '-';
+                        let pPyung = '-';
+                        if (pM2 !== '-') {
+                            const val = parseInt(pM2.replace(/,/g, ''));
+                            if (!isNaN(val)) pPyung = Math.round(val * 3.3058).toLocaleString();
+                        }
+                        html += `<div class="price-cell">${pPyung}</div>`;
+                    });
+                    html += '</div>';
+
+                    html += '</div>';
+                    content.innerHTML = html;
+                } else {
+                    content.innerHTML = '<p style="text-align: center; color: #ef4444; font-size: 8pt;">데이터 없음</p>';
+                }
+            } catch (error) {
+                console.error('Price search error:', error);
+                content.innerHTML = '<p style="text-align: center; color: #ef4444; font-size: 8pt;">오류 발생</p>';
+            }
+        }
+
+        function togglePricePanel(e) {
+            const panel = document.getElementById('price-panel');
+            const btn = e.currentTarget;
+            panel.style.transition = 'right 0.3s ease, transform 0.3s ease';
+            const isMinimized = panel.classList.toggle('minimized');
+            btn.innerText = isMinimized ? '◀' : '▶';
+
+            if (panel.style.top && panel.style.top !== 'auto') {
+                // Dragged state: add/remove translateX while keeping top
+                panel.style.transform = isMinimized ? 'translateX(220px)' : 'none';
+            } else {
+                // Default state: revert to center vertical alignment from CSS
+                panel.style.transform = '';
+            }
+        }
+
+        function closePricePanel() {
+            const panel = document.getElementById('price-panel');
+            if (!panel) return;
+            panel.style.transition = 'right 0.3s ease, transform 0.3s ease';
+            panel.classList.remove('active');
+            panel.classList.remove('minimized');
+            const toggleBtn = panel.querySelector('.price-panel-toggle');
+            if (toggleBtn) toggleBtn.innerText = '▶';
+            // Completely hide after transition
+            setTimeout(() => {
+                if (!panel.classList.contains('active')) {
+                    panel.style.display = 'none';
+                }
+            }, 300);
+        }
+
+        // Unused functions removed to avoid confusion
+
+        async function showBuildingDetail(idx) {
+            const data = polygonsData[idx];
+            if (!data) return;
+            const pnu = data.pnu;
+            const panel = document.getElementById('building-panel');
+            const content = document.getElementById('building-detail-content');
+
+            panel.style.display = 'block';
+            panel.classList.remove('minimized');
+            content.innerHTML = '<p style="text-align: center; color: #64748b; font-size: 8pt; padding: 20px;">정보를 불러오는 중...</p>';
+
+            try {
+                const response = await fetch(`/proxy/building-detail/?pnu=${pnu}`);
+                const resData = await response.json();
+
+                if (resData.status === 'OK' && resData.data) {
+                    const recap = resData.data.recap || {};
+                    const titles = resData.data.titles || [];
+
+                    // Update Panel Title
+                    const titleText = panel.querySelector('.bld-panel-title-text');
+                    if (titleText) {
+                        titleText.innerText = "건축물대장 총괄표제부";
+                    }
+
+                    if (Object.keys(recap).length === 0 && titles.length === 0) {
+                        content.innerHTML = '<p style="text-align: center; color: #ef4444; font-size: 8pt; padding: 20px;">건축물 정보가 없습니다.</p>';
+                        return;
+                    }
+
+                    let html = '<table class="bld-table">';
+
+                    // Helper for rows
+                    const row = (l1, k1, l2, k2) => {
+                        return `<tr>
+                            <th>${l1}</th><td>${recap[k1] || '-'}</td>
+                            <th>${l2}</th><td>${recap[k2] || '-'}</td>
+                        </tr>`;
+                    };
+
+                    // Row 1: 대지위치
+                    html += `<tr><th>대지위치</th><td colspan="3">${recap['대지위치'] || '-'}</td></tr>`;
+                    // Row 2: 도로명주소
+                    html += `<tr><th>도로명주소</th><td colspan="3">${recap['도로명주소'] || '-'}</td></tr>`;
+                    // Row 3: 건물명
+                    html += `<tr><th>건물명</th><td colspan="3">${recap['건물명'] || '-'}</td></tr>`;
+                    // Row 4: 관련지번
+                    html += `<tr><th>관련지번</th><td colspan="3">${recap['관련지번'] || '-'}</td></tr>`;
+
+                    html += row('대지면적(㎡)', '대지면적', '연면적(㎡)', '연면적');
+                    html += row('건축면적(㎡)', '건축면적', '용적면적(㎡)', '용적면적');
+                    html += row('건폐율(%)', '건폐율', '용적률(%)', '용적률');
+                    html += row('주건물수', '주건물수', '부속건물수', '부속건물수');
+                    html += row('호/가구/세대', '호가구세대', '주용도', '주용도');
+                    html += row('자주식주차', '자주식주차', '기계식주차', '기계식주차');
+                    html += row('허가일', '허가일', '사용승인일', '사용승인일');
+
+                    html += '</table>';
+
+                    // Building Titles List
+                    if (titles.length > 0) { // Always show header if we have data structure
+                        html += '<div class="bld-sub-header" style="margin-top: 10px; margin-bottom: 5px; font-weight: bold; color: #2563eb; text-align:center;">건축물현황</div>';
+                        html += '<table class="bld-list-table" style="width:100%; border-collapse: collapse; font-size: 7.5pt;"><thead><tr style="background: #f1f5f9; color: #475569;">';
+                        ['구분', '명칭', '구조/지붕', '층수', '용도', '면적(㎡)'].forEach(h => html += `<th style="padding: 4px; border: 1px solid #e2e8f0;">${h}</th>`);
+                        html += '</tr></thead><tbody>';
+
+                        titles.forEach(t => {
+                            html += `<tr>
+                                <td style="text-align:center; padding: 4px; border: 1px solid #e2e8f0;">${t['구분']}</td>
+                                <td style="text-align:center; padding: 4px; border: 1px solid #e2e8f0;">${t['명칭']}</td>
+                                <td style="text-align:center; padding: 4px; border: 1px solid #e2e8f0;">${t['구조']} ${t['지붕']}</td>
+                                <td style="text-align:center; padding: 4px; border: 1px solid #e2e8f0;">${t['층수']}</td>
+                                <td style="text-align:center; padding: 4px; border: 1px solid #e2e8f0;">${t['용도']}</td>
+                                <td style="text-align:right; padding: 4px; border: 1px solid #e2e8f0;">${t['면적'] ? Number(t['면적']).toLocaleString() : '-'}</td>
+                             </tr>`;
+                        });
+                        html += '</tbody></table>';
+                    }
+
+                    content.innerHTML = html;
+                } else {
+                    content.innerHTML = `<p style="text-align: center; color: #ef4444; font-size: 8pt; padding: 20px;">데이터 없음: ${resData.message || ''}</p>`;
+                }
+            } catch (error) {
+                console.error('Building search error:', error);
+                content.innerHTML = '<p style="text-align: center; color: #ef4444; font-size: 8pt; padding: 20px;">오류 발생</p>';
+            }
+        }
+
+        function toggleBuildingPanel(e) {
+            const panel = document.getElementById('building-panel');
+            const btn = e.currentTarget;
+
+            // To "fold up", anchor to current top edge
+            const rect = panel.getBoundingClientRect();
+            panel.style.top = rect.top + "px";
+            panel.style.bottom = "auto";
+
+            panel.style.transition = 'max-height 0.3s ease, top 0.3s ease';
+            panel.classList.toggle('minimized');
+            btn.innerText = panel.classList.contains('minimized') ? '▼' : '▲';
+        }
+
+        function closeBuildingPanel() {
+            const panel = document.getElementById('building-panel');
+            panel.style.display = 'none';
+            panel.classList.remove('minimized');
+            // Reset position if needed, or keep it where it was dragged
+        }
+
+        function clearPolygons() {
+
+            polygonsData.forEach(data => {
+
+                if (!data) return;
+
+                data.kakao.forEach(p => p.setMap(null));
+
+                data.google.forEach(p => p.setMap(null));
+
+                data.markersK.forEach(m => m.setMap(null));
+
+                data.markersG.forEach(m => m.setMap(null));
+
+            });
+
+            polygonsData = [];
+
+            closeInfoPanel();
+            closePricePanel();
+            closeBuildingPanel();
+        }
+
+    </script>
+
+    <div id="debug-status">준비 완료 (v1.51)</div>
+</body>
+
+</html>

@@ -1,0 +1,37 @@
+Connecting to server...
+Connected!
+
+=== Docker Containers ===
+CONTAINER ID   IMAGE                 COMMAND                  CREATED         STATUS         PORTS                    NAMES
+4b4a08b55c92   gundammap_web         "python manage.py ru…"   5 minutes ago   Up 5 minutes   0.0.0.0:8000->8000/tcp   gundammap_web_1
+0dade50460ef   gundammap_db          "docker-entrypoint.s…"   5 minutes ago   Up 5 minutes   5432/tcp                 gundammap_db_1
+20eceb2745a7   cb-valuation:latest   "python backend/app/…"   3 hours ago     Up 3 hours     0.0.0.0:8080->8000/tcp   cb-valuation
+3ba52a57c495   dcf-backend           "python backend_seib…"   28 hours ago    Up 28 hours    0.0.0.0:8081->8081/tcp   dcf-backend-container
+2caa1fb9635c   audit-tool            "/docker-entrypoint.…"   3 days ago      Up 3 days      0.0.0.0:8001->80/tcp     audit-app
+cab47148c75b   nginx:alpine          "/docker-entrypoint.…"   3 days ago      Up 3 days      0.0.0.0:8002->80/tcp     dcf-container
+
+
+=== Web Container Logs (last 30 lines) ===
+Web container: gundammap_web_1
+Performing system checks...
+
+System check identified no issues (0 silenced).
+
+You have 1 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): maps.
+Run 'python manage.py migrate' to apply them.
+January 22, 2026 - 10:49:31
+Django version 5.2.10, using settings 'gundammap.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+
+STDERR:
+Password: Watching for file changes with StatReloader
+
+
+=== Testing localhost:8000 ===
+HTTP Status Code: 200
+
+Done!

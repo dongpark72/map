@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>건담맵 - v2.2</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Map SDKs -->
+    <script type="text/javascript"
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=89f24ec4c89844f47ac94f3eca7daa6d&libraries=services"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQ4i925c2gLuRrqbMgAsWWZ2sy2T6sv8w"></script>
+
+    <link rel="stylesheet" href="https://assets.goal-runner.com/nas2025/static/css/map_app.css">
+
+    <script>
+        window.GUNDAM_CONFIG = {
+            vworldApiKey: 'F78E51BE-4005-3AFF-91E0-BDDBAC8478D0',
+            vworldDomain: '',
+            kakaoMapsApiKey: '89f24ec4c89844f47ac94f3eca7daa6d',
+            googleMapsApiKey: 'AIzaSyDQ4i925c2gLuRrqbMgAsWWZ2sy2T6sv8w',
+            apiBase: 'https://api-map.goal-runner.com'
+        };
+    </script>
+</head>
+
+<body>
+    <!-- Premium Landing Page Style Login Overlay -->
+    <div id="gundam-login-overlay" style="display: none;">
+        <div class="premium-login-card">
+            <div class="pl-logo-container">
+                <h1 class="pl-logo-text">samduk</h1>
+                <p class="pl-logo-subtext">Professional NPL Advisory</p>
+            </div>
+            <div class="pl-form-group">
+                <label class="pl-label">TERMINAL ID</label>
+                <input type="text" id="gundam-userId" class="pl-input" placeholder="Enter ID" autocomplete="off">
+            </div>
+            <div class="pl-form-group">
+                <label class="pl-label">ACCESS KEY</label>
+                <input type="password" id="gundam-userPw" class="pl-input" placeholder="Enter PW"
+                    onkeypress="if(event.keyCode==13) checkGundamAuth()">
+            </div>
+            <div style="margin-bottom: 25px;"></div>
+            <button class="pl-access-btn" onclick="checkGundamAuth()">System Access</button>
+            <div id="gundam-status" class="gundam-status"></div>
+        </div>
+        <div class="pl-footer">
+            Professional Financial Analysis Systems | Secured by QuantEngine v2.0
+        </div>
+    </div>
+
+    <div id="map-kakao" class="map-container active"></div>
+    <div id="map-google" class="map-container"></div>
+
+    <!-- 로드뷰 전체 화면 레이어 -->
+    <div id="roadview-container">
+        <div id="roadview-main"></div>
+        <div id="roadview-minimap">
+            <button class="rv-map-control rv-map-resize" onclick="toggleRvMinimapSize()" title="크기 조절">⤡</button>
+            <button class="rv-map-control rv-map-hide" id="rv-hide-btn" onclick="toggleRvMinimapVisibility()"
+                title="숨기기/보이기">↙</button>
+        </div>
+        <button class="roadview-close" onclick="closeRoadview()">×</button>
+    </div>
+
+    <!-- 하단 정보 패널 -->
+    <div id="info-panel">
+        <div class="info-panel-header" id="info-panel-header">
+            <span class="info-panel-title">토지 정보</span>
+            <div class="header-btns">
+                <button class="info-toggle-btn" onclick="toggleInfoPanel(event)"
+                    style="background:none; border:none; border-radius:0; padding:0 8px; font-size:1rem; opacity:0.7;">▲</button>
+                <button class="info-panel-close" onclick="closeInfoPanel()">×</button>
+            </div>
+        </div>
+        <div id="info-content"></div>
+    </div>
+
+    <!-- 공시지가 패널 -->
+    <div id="price-panel">
+        <div class="price-panel-header" id="price-panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button class="price-panel-toggle" onclick="togglePricePanel(event)">▶</button>
+                <span class="price-panel-title-text">공시지가</span>
+            </div>
+            <button class="price-close-btn" onclick="closePricePanel()">×</button>
+        </div>
+        <div id="price-content"></div>
+    </div>
+
+    <div id="sidebar">
+        <div id="server-alert" class="alert-box">⚠️ 반드시 [http://map.goal-runner.com/] 주소로 접속해 주세요.</div>
+        <div class="sidebar-header">
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+                <h1 style="font-size: 1rem; font-weight: 700; color: var(--primary);">주소 입력</h1>
+                <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">v2.2</span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button class="logout-btn" onclick="logout()" title="로그아웃">
+                    <span>Logout</span>
+                </button>
+                <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
+                    <span id="toggle-icon">◀</span>
+                </button>
+            </div>
+        </div>
+        <div class="control-group">
+            <textarea id="address-input" placeholder="여러 주소 입력... (우클릭으로 추가 가능)"></textarea>
+            <button class="primary-btn" onclick="handleSearch()">검색 및 지적경계 표시</button>
+        </div>
+        <div id="result-list"></div>
+    </div>
+
+    <div id="map-tools">
+        <div class="tool-group">
+            <button class="tool-btn" id="btn-map-normal" onclick="switchMapType('normal')">지도</button>
+            <button class="tool-btn active" id="btn-map-satellite" onclick="switchMapType('satellite')">스카이뷰</button>
+        </div>
+        <div class="tool-group">
+            <button class="tool-btn active" id="btn-view-total" onclick="switchViewMode('total')">종합</button>
+            <button class="tool-btn" id="btn-view-base" onclick="switchViewMode('base')">일반</button>
+        </div>
+        <div class="tool-group">
+            <button class="tool-btn active" id="btn-prov-kakao" onclick="switchProvider('kakao')">카카오</button>
+            <button class="tool-btn" id="btn-prov-google" onclick="switchProvider('google')">구글</button>
+        </div>
+        <div class="tool-group">
+            <button class="tool-btn" id="btn-cadastral" title="지적편집도" onclick="toggleCadastral()">지적</button>
+            <button class="tool-btn" id="btn-district" title="법정경계" onclick="toggleDistrict()">법정</button>
+        </div>
+        <div class="tool-group">
+            <button class="tool-btn" id="btn-measure-dist" title="거리 재기" onclick="toggleMeasure('dist')">거리</button>
+            <button class="tool-btn" id="btn-measure-area" title="면적 재기" onclick="toggleMeasure('area')">면적</button>
+        </div>
+        <div class="tool-group">
+            <button class="tool-btn" id="btn-roadview-tool" title="로드뷰 보기" onclick="toggleRoadviewTool()">로드뷰</button>
+        </div>
+    </div>
+
+    <div id="building-panel">
+        <div class="bld-detail-title" id="building-panel-header">
+            <span class="bld-panel-title-text">일반건축물대장 일반건축물</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button onclick="toggleBuildingPanel(event)"
+                    style="background:none; border:none; cursor:pointer; font-size:1rem; color:#64748b; padding:0 4px;">▲</button>
+                <button onclick="closeBuildingPanel()"
+                    style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:#64748b; padding:0 4px;">×</button>
+            </div>
+        </div>
+        <div id="building-detail-content"></div>
+    </div>
+
+    <div id="floor-panel">
+        <div class="floor-panel-title" id="floor-panel-header">
+            <span class="floor-panel-title-text">층별 정보</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button onclick="toggleFloorPanel(event)"
+                    style="background:none; border:none; cursor:pointer; font-size:1rem; color:#64748b; padding:0 4px;">▲</button>
+                <button onclick="closeFloorPanel()"
+                    style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:#64748b; padding:0 4px;">×</button>
+            </div>
+        </div>
+        <div id="floor-content"></div>
+    </div>
+
+    <div id="realprice-panel">
+        <div class="realprice-header" id="realprice-panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button class="realprice-toggle" onclick="toggleRealPricePanel(event)"
+                    style="background:none; border:none; cursor:pointer; font-size:1rem; color:#64748b; padding:0 4px;">▶</button>
+                <span class="realprice-title">실거래가 정보 (최근 2년)</span>
+            </div>
+            <button onclick="closeRealPricePanel()"
+                style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:#64748b;">×</button>
+        </div>
+        <div class="realprice-tabs">
+            <div class="realprice-tab" data-type="factory">공장및창고</div>
+            <div class="realprice-tab" data-type="biz">상업업무용</div>
+            <div class="realprice-tab" data-type="land">토지</div>
+            <div class="realprice-tab" data-type="apt">아파트</div>
+            <div class="realprice-tab" data-type="offi">오피스텔</div>
+            <div class="realprice-tab" data-type="row">연립다세대</div>
+            <div class="realprice-tab" data-type="detached">단독다가구</div>
+        </div>
+        <div id="realprice-content" class="realprice-table-container"></div>
+    </div>
+
+    <script src="https://assets.goal-runner.com/nas2025/static/js/map_app.js"></script>
+
+    <div id="warehouse-panel">
+        <div class="panel-header" id="warehouse-header">
+            <div class="panel-title warehouse-panel-title">📦 물류창고 정보</div>
+            <div class="panel-controls">
+                <button onclick="toggleWarehousePanel(event)">▼</button>
+                <button onclick="closeWarehousePanel()">✕</button>
+            </div>
+        </div>
+        <div class="panel-content" id="warehouse-content"></div>
+    </div>
+
+    <div id="auction-panel">
+        <div class="panel-header" id="auction-header">
+            <div class="panel-title auction-panel-title">📢 공매 물건 정보</div>
+            <div class="panel-controls">
+                <button onclick="toggleAuctionPanel(event)">▼</button>
+                <button onclick="closeAuctionPanel()">✕</button>
+            </div>
+        </div>
+        <div class="panel-content" id="auction-content"></div>
+    </div>
+
+    <div id="hospital-panel">
+        <div class="panel-header" id="hospital-header">
+            <div class="panel-title hospital-panel-title">🏥 병원 정보</div>
+            <div class="panel-controls">
+                <button onclick="toggleHospitalPanel(event)">▼</button>
+                <button onclick="closeHospitalPanel()">✕</button>
+            </div>
+        </div>
+        <div class="panel-content" id="hospital-content"></div>
+    </div>
+</body>
+
+</html>
